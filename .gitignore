@@ -1,0 +1,11 @@
+# Sensitive dokumenter — holdes lokalt, skal ikke til offentlig repo
+docs/betaling/*.pdf
+
+# Hemmeligheter og miljøvariabler
+.env
+.env.*
+!.env.example
+
+# Diverse
+node_modules/
+_gitlog.txt
