@@ -29,8 +29,10 @@ Ved øktslutt (tid ute, bil full eller manuelt stopp) trekkes beløpet via `POST
 | Lag | Komponent | Ansvar |
 |---|---|---|
 | **Skylaget** | Serverløs funksjon (Node.js) + web-app | Betalingsflyt mot Nets Easy (Nexi Checkout), webhook-mottak, sesjonsdata, kommando til Shelly |
-| **Styringslaget** | Shelly Pro 3EM | Mottar kommandoer, måler energiforbruk (kWh) i sanntid, lokal sikkerhetslogikk |
-| **Effektlaget** | 4-polt kontaktor (25A) | Fysisk inn-/utkobling av trefasestrøm (400V TN, maks 16A) |
+| **Styringslaget** | Shelly Pro 3EM 120A V2 + Switch Add-on | Mottar kommandoer, måler energiforbruk (kWh) i sanntid, lokal sikkerhetslogikk |
+| **Effektlaget** | CHINT NCH8 kontaktor (25A, 4-pol) | Fysisk inn-/utkobling av trefasestrøm (400V TN, maks 16A) |
+
+Se [docs/hardware/komponentliste.md](docs/hardware/komponentliste.md) for full bestillingsliste med spesifikasjoner og datablader.
 
 ## Betaling
 
