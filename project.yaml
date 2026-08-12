@@ -1,0 +1,25 @@
+name: kodelader
+title: "Kodelader"
+tagline: "QR-aktivert elbil-lading med Vipps/kort-betaling (Nexi Checkout)"
+description: >
+  Egenutviklet ladesystem for KODE15 AS. Kunden skanner en QR-kode ved laderen,
+  betaler med Vipps eller kort (reservasjon av maksbeløp), og trekkes kun for
+  faktisk ladet energi. Shelly Pro 3EM-enheter kobler seg til appen via utgående
+  WebSocket (ingen brannmurendringer). Admin-grensesnittet er kun tilgjengelig
+  på tailnettet.
+domain: "Betalingsstyrt elbil-lading på KODE15-området"
+etappe: "Fase 1"
+components:
+  app:
+    language: typescript
+    path: app/
+    runtime: node22 + express + svelte
+  device:
+    language: javascript
+    path: device/
+    runtime: shelly-script (Gen2) + node-simulator
+runtime: docker-compose
+artifacts: data/
+ports:
+  public: 8096
+  admin: 8097

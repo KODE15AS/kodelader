@@ -7,6 +7,7 @@ Daterte overganger:
 
 - **2026-07-23 — Fase 0 til Fase 1** (oppstart)
 - **2026-08-12 — Maskinvare ankommet, arkitekturendring MQTT → WebSocket** (se [2026-08-12-websocket-arkitektur.md](2026-08-12-websocket-arkitektur.md))
+- **2026-08-12 — Fase 1 bygget og verifisert lokalt mot Nexi-sandkassen** (gjenstår: deploy på Raven + ekte betaling gjennom checkout)
 
 ---
 
@@ -25,7 +26,7 @@ Daterte overganger:
 
 - [x] Shelly Pro 3EM ankommet og på nett: `10.10.0.25` på KODE15-wifi (id `shellypro3em-1c8f57034ae4`, fastvare 2.0.0, trefase-profil)
 - [x] Nettverkstopologi kartlagt: KODE15-wifi (10.10.0.x) og Raven (10.5.0.x) er separate soner på samme brannmur, isolert begge veier (verifisert med kall begge retninger)
-- [x] **Arkitekturbeslutning: Shelly Outbound WebSocket erstatter MQTT/Mosquitto.** Brannmurendringer via Borg Commit er dyre/trege, så kommunikasjonen snus: enheten kobler selv utover (HTTPS/443) til appen via Funnel. Mosquitto-containeren utgår, port 8097 frigis. Alle fremtidige ladere på KODE15-wifi bruker samme mønster — null nettverksendringer per enhet
+- [x] **Arkitekturbeslutning: Shelly Outbound WebSocket erstatter MQTT/Mosquitto.** Brannmurendringer via Borg Commit er dyre/trege, så kommunikasjonen snus: enheten kobler selv utover (HTTPS/443) til appen via Funnel. Mosquitto-containeren utgår, port 8097 gjenbrukes til admin-grensesnittet (kun tailnett). Alle fremtidige ladere på KODE15-wifi bruker samme mønster — null nettverksendringer per enhet
 - [x] Outbound WebSocket konfigurert og verifisert på enheten: `wss://cadify104raven.tail14de1b.ts.net/kodelader/ws`, Default TLS (`ca.pem`). Melder tilkoblingsfeil til appen står klar — forventet
 - [x] Passord satt på enhetens nød-hotspot (AP `ShellyPro3EM-1C8F57034AE4`)
 - [x] **Akseptert risiko (testfase):** Adminpassord på webgrensesnittet er IKKE satt — alle på KODE15-wifi kan styre/omkonfigurere enheten. Sjekkpunkt: MÅ settes før produksjon (fase 3)
@@ -47,7 +48,7 @@ Pris, maksbeløp og øktslutt-regler skal IKKE hardkodes — de lagres i databas
 - [ ] Avklare med elektriker: installasjon av kontaktor/kurs, forskriftskrav for uttak uten Mode 3-kommunikasjon (styrt stikkontakt / Mode 2)
 - [ ] Eget domene/DNS mot Ravens faste IP (fase 3 — arkitekturen holder dette åpent i forhold til Tailscale)
 - [ ] Fast DHCP-lease for Shelly-enheten (10.10.0.25 er dynamisk tildelt i dag)
-- [ ] Admin-grensesnitt for innstillinger (pris, maksbeløp, øktslutt-regler) — egen fase etter fase 2
+- [x] ~~Admin-grensesnitt for innstillinger~~ — levert som del av fase 1 (se Web-UI under)
 
 ## Plan for fase 1 — betalingsflyt, WebSocket og SMS
 
@@ -55,24 +56,50 @@ Mål: Hele kjeden fungerer ende-til-ende i Nexi-sandkassen med en **simulert** l
 
 ### Kundeflyt som bygges
 
-1. Skann QR → `BASE_URL/start?enhet=proto1&produkt=maks200`
+1. Skann QR → `BASE_URL/start?enhet=proto1&produkt=kr100` (test-QR: `produkt=kr1`)
 2. Appen oppretter reservasjon hos Nexi og videresender rett til hosted checkout (Vipps app-switch / kort)
 3. Webhook `payment.checkout.completed` → startkommando over enhetens WebSocket-forbindelse → SMS 1: *«Elbil ladeøkt startet hos KODE15 as, og du får ny beskjed når ladingen er ferdig.»*
 4. Øktslutt (ferdig-deteksjon, grense nådd eller manuelt stopp) → delvis capture `min(maksbeløp, kWh × pris)` → SMS 2: *«Ladeøkten hos KODE15 as er ferdig, du har ladet xx kWh for Kr. yy. Flytt bilen om nødvendig for at andre skal kunne lade. Her er link til kvittering som vil være tilgjengelig i 30 dager: …»*
 
 ### Leveranser
 
-- [ ] Raven-prosjektstruktur: `project.yaml`, `docker-compose.yml` (kun app-container, `raven.project`-labels), `app/Dockerfile`, `.env.example`
-- [ ] Innstillings- og konfigmodell: enheter/produkter i SQLite med standardverdiene over (flere QR-typer per enhet: fast maksbeløp og «velg maksbeløp»)
-- [ ] `/start`: oppretter Nexi-betaling (reservasjon) og videresender til hosted checkout
-- [ ] `/webhooks/nets`: autorisasjonsverifisering, ladestart via WebSocket, SMS 1
-- [ ] WebSocket-endepunkt `/ws`: mottar enhetsforbindelser (Shelly outbound WS), RPC begge veier, gjenkjenning per enhets-ID
-- [ ] Simulert Shelly (`device/simulator.js`) som kobler seg på `/ws` og oppfører seg som enheten
-- [ ] Øktslutt-håndtering: ferdig-deteksjon, delvis capture, frigivelse av rest-reservasjon, SMS 2 med kvitteringslenke
-- [ ] Web: beløpsvalg-side, statusside med «Avslutt lading», kvitteringsside (30 dagers levetid, SQLite)
-- [ ] Deploy på Raven: klone til `~/dev/kodelader`, `docker compose up -d --build`, Funnel-rute `/kodelader` → 8096
+- [x] Raven-prosjektstruktur: `project.yaml`, `docker-compose.yml` (kun app-container, `raven.project`-labels), `app/Dockerfile`, `.env.example`
+- [x] Innstillings- og konfigmodell: enheter/produkter i SQLite. To QR-produkter seedet for test: `kr1` (maks 1 kr) og `kr100` (maks 100 kr), begge 5 kr/kWh — redigerbare i admin
+- [x] `/start`: oppretter Nexi-betaling (reservasjon) og videresender til hosted checkout
+- [x] `/webhooks/nets`: autorisasjonsverifisering, ladestart via WebSocket, SMS 1
+- [x] WebSocket-endepunkt `/ws`: mottar enhetsforbindelser (Shelly outbound WS), RPC begge veier, gjenkjenning per enhets-ID. Lytter på både `/ws` og `/kodelader/ws` siden Funnel-stistripping avklares ved deploy
+- [x] Simulert Shelly (`device/simulator.mjs`) som kobler seg på `/ws` og oppfører seg som enheten (11 kW lading, «bil full»-modus for å teste ferdig-deteksjon)
+- [x] Øktslutt-håndtering: ferdig-deteksjon, delvis capture (kansellering hvis 0 kWh), SMS 2 med kvitteringslenke
+- [x] Web: brukerside (status + «Avslutt lading» + historikk), kvitteringsside og vilkårsside (30 dagers levetid, SQLite). *Beløpsvalg-siden utgikk — QR-koden bestemmer maksbeløpet direkte*
+- [x] Utkast til Shelly-script (`device/kodelader-session.js`) — lokal autonomi (maks kWh/tid, ferdig-deteksjon) via KVS-grenser, testes i fase 2
+- [x] QR-koder generert (`app/scripts/generate-qr.mjs` → `docs/qr/`) for proto1 kr1/kr100 + simulator
+- [ ] Deploy på Raven: klone til `~/dev/kodelader`, `docker compose up -d --build`, Funnel-rute `/kodelader` → 8096, admin via tailnett → 8097
 - [ ] Ende-til-ende-verifisering i sandkassen (se sjekkliste under)
-- [ ] Utkast til Shelly-script (`device/kodelader-session.js`) — kjører lokal autonomi (maks kWh/tid, ferdig-deteksjon) og WS-kommunikasjon
+
+### Web-UI (bygget 2026-08-12)
+
+Svelte 5 + Vite, KODE15-profil fra popina.no (Montserrat, benhvit `#F7F4EF`, mørk blågrå `#233038`, aksent `#BBAD9A`, navy `#263246`, nummererte seksjoner). To innganger i samme bygg:
+
+- **Brukerside** (offentlig, port 8096, bak Funnel): lampestatus for laderen, aktiv økt med kWh/kostnad/effekt og «Avslutt lading», historikk med maskerte mobilnumre. Miljø-badge (SANDKASSE/SKARP) er alltid synlig
+- **Adminside** (kun tailnett, port 8097 — gjenbrukes etter at Mosquitto utgikk): fire faner
+  1. **Enheter** — lamper for online/kontaktor, effekt/målerstand, manuell PÅ/AV (testbenk)
+  2. **Økter** — full historikk med mobilnumre i klartekst, stopp-knapp for aktive økter
+  3. **Innstillinger** — pris/maksbeløp per QR-produkt, ferdig-terskel/-varighet, makstid
+  4. **Etablering** — sjekkpunktliste for Vipps/Nexi-etableringen: automatiske lamper (nøkler, checkout, webhook, mobilnummer, capture, SMS, enhet-WS) som tennes av beviser i drift, manuelle bekreftelser (rest-frigivelse, Vipps-test, beløpskontroll, live-nøkler, Shelly-passord, DHCP-lease), «Test API-nøkler nå»-knapp og hendelseslogg
+
+Admin har ingen egen innlogging — tilgangsstyringen ER tailnettet (dokumentert beslutning; revurderes hvis flere skal ha tilgang).
+
+### Lokal verifisering 2026-08-12 (simulator + ekte Nexi-sandkasse)
+
+Kjørt på utviklingsmaskin med appen på localhost og ekte test-API mot Nexi:
+
+- `/start?enhet=sim1&produkt=kr1` → HTTP 302 til `test.checkout.dibspayment.eu` med ekte `paymentId` ✅ (nøkler + reservasjon virker)
+- Simulert webhook med riktig Authorization-header → økt aktiv, kontaktor PÅ i simulatoren, SMS 1-tekst logget ✅
+- Ferdig-deteksjon: simulator falt til 50 W etter 0,03 kWh → økten avsluttet automatisk med årsak «bilen er ferdig ladet», 18 øre korrekt beregnet (0,037 kWh × 5 kr) ✅
+- Capture ga forventet HTTP 402 (checkouten ble aldri reelt betalt — ingen reservasjon å trekke fra); feilen ble ryddig logget og økten merket `capture_failed` ✅
+- Kvitteringsside og SMS 2-tekst (med kvitteringslenke) korrekt ✅
+
+Reell capture og rest-frigivelse kan først verifiseres med en ekte testbetaling gjennom hosted checkout (testkort/Vipps) etter deploy — sjekklisten under.
 
 ### Verifiseres i sandkassen
 
@@ -94,7 +121,7 @@ Mål: Hele kjeden fungerer ende-til-ende i Nexi-sandkassen med en **simulert** l
 - [ ] Live-nøkler (legges kun inn i `.env` på Raven av Jørn)
 - [ ] **Adminpassord på Shelly-enheten (akseptert risiko i test — obligatorisk før produksjon)**
 - [ ] Fast DHCP-lease / dokumentert enhets-ID-register
-- [ ] QR-koder genereres og monteres på enheten
+- [ ] QR-koder regenereres med endelig domene og monteres på enheten
 - [ ] Eget domene/DNS mot fast IP, `BASE_URL` byttes (én innstilling i app + én i Shelly)
 - [ ] Driftslogg og enkel overvåking
 - [ ] Admin-grensesnitt for innstillinger

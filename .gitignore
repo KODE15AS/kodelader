@@ -6,6 +6,12 @@ docs/betaling/*.pdf
 .env.*
 !.env.example
 
-# Diverse
+# Bygg og kjøretid
 node_modules/
+app/dist/
+app/web-dist/
+data/
+
+# Diverse
 _gitlog.txt
+popina.html

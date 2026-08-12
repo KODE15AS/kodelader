@@ -35,7 +35,7 @@ Shelly-enheten holder selv en utgående WebSocket-forbindelse (`wss://`) åpen m
 
 - **Offentlig HTTPS** (for QR-URL-er, Nexi-webhooks og enhets-WebSockets) går i dag via Tailscale Funnel på Raven. Raven har fast IP, og eget domene/DNS er planlagt — derfor er alle URL-er konfigurert via én `BASE_URL`-miljøvariabel.
 - **Enhetskommunikasjon uten brannmurendringer:** Ladeenhetene står på KODE15-wifi, isolert fra Raven-sonen. I stedet for brannmurregler (dyre å endre via Borg Commit) bruker enhetene Shelly «Outbound WebSocket»: de kobler selv utover til appen via HTTPS/443. Nye ladere trenger kun én URL i oppsettet.
-- **Driftsparametre er innstillinger:** Pris per kWh, maksbeløp og øktslutt-regler ligger i databasen (standard: 5 kr/kWh, 200 kr, ferdig-deteksjon < 100 W i 10 min, makstid 12 t) og skal redigeres i et fremtidig admin-grensesnitt.
+- **Driftsparametre er innstillinger:** Pris per kWh, maksbeløp og øktslutt-regler ligger i databasen (standard: 5 kr/kWh, ferdig-deteksjon < 100 W i 10 min, makstid 12 t) og redigeres i admin-grensesnittet (kun tilgjengelig på tailnettet, port 8097).
 - **Flerenhetsmodell:** Hver QR-kode er en URL med `enhet`- og `produkt`-parametre. Én enhet kan ha flere QR-koder (f.eks. «Start lading» med fast maksbeløp, eller «Velg maksbeløp» med beløpsvalg). Nye ladeenheter legges til i konfigurasjonen uten arkitekturendringer.
 - **Ingen omflashing:** Shelly-enheten kjører original fastvare med et innebygd JavaScript (Shelly Scripting) — RPC-API, OTA og garanti beholdes.
 
@@ -61,8 +61,25 @@ Betalingslaget bygger på **Nets Easy Payment API (Nexi Checkout)** med avtalene
 
 - **Fase 0 (fullført):** Prosjektbeskrivelse, komponentvalg og innkjøp, gjenåpnet Nets-avtale (nå registrert på Kode15 AS), sandkasse-nøkler hentet, arkitektur besluttet
 - **Maskinvare (2026-08-12):** Shelly Pro 3EM ankommet, på KODE15-wifi og ferdig konfigurert med utgående WebSocket mot appen — MQTT/Mosquitto er erstattet av WebSocket (se [handover/2026-08-12-websocket-arkitektur.md](handover/2026-08-12-websocket-arkitektur.md))
-- **Fase 1 (pågår):** Betalingsflyt, WebSocket-endepunkt, SMS og simulert lader — bygges og testes i sandkassen på Raven
+- **Fase 1 (bygget, deploy gjenstår):** Betalingsflyt mot Nexi-sandkassen, WebSocket-hub, SMS-tekster, simulert lader, brukerside og adminside (enheter/økter/innstillinger/etablering) er bygget og verifisert lokalt — gjenstår deploy på Raven og ekte testbetaling gjennom checkout
 - **Fase 2:** Testbenk med ekte maskinvare (Shelly-script, kontaktor via elektriker, ekte kWh-måling, autonomitesting)
 - **Fase 3:** Produksjonssetting med live-nøkler, adminpassord på enheten, QR-koder, eget domene/DNS
 
 Detaljert fase-plan: [handover/HANDOVER.md](handover/HANDOVER.md)
+
+## Utvikling
+
+```bash
+cd app
+npm install
+npm run build        # Svelte/Vite-frontend + TypeScript-backend
+node dist/index.js   # leser .env fra arbeidskatalogen (se .env.example)
+
+# Simulert ladeenhet i eget vindu:
+cd ../device && npm install
+node simulator.mjs ws://localhost:8096/ws --full-etter-kwh=0.03
+```
+
+- Brukerside: `http://localhost:8096` · Admin: `http://localhost:8097`
+- QR-koder: `node app/scripts/generate-qr.mjs` → `docs/qr/`
+- Deploy på Raven: `docker compose up -d --build` (se `docker-compose.yml` og `project.yaml`)

@@ -1,0 +1,9 @@
+{
+  "name": "kodelader-device",
+  "private": true,
+  "type": "module",
+  "description": "Simulert Shelly for testing + Shelly-script for lokal autonomi",
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

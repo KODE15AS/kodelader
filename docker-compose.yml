@@ -1,0 +1,16 @@
+name: kodelader
+
+services:
+  app:
+    build: ./app
+    restart: unless-stopped
+    ports:
+      - "8096:8096"   # offentlig (Funnel /kodelader)
+      - "8097:8097"   # admin (kun tailnett via tailscale serve)
+    env_file: .env
+    environment:
+      DB_PATH: /data/kodelader.sqlite
+    volumes:
+      - ./data:/data
+    labels:
+      raven.project: "kodelader"
