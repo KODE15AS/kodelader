@@ -15,26 +15,27 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
         |
 (3. betaling godkjent — webhook: payment.checkout.completed)
         v
-[ kodelader-app ] --(4. MQTT-kommando via Mosquitto)--> [ Shelly Pro 3EM ]
-        |                                                     |
+[ kodelader-app ] --(4. kommando over WebSocket)--> [ Shelly Pro 3EM ]
+        |              (enheten kobler selv utover)           |
    (SMS 1: "ladeøkt startet")                     (5. styrer kontaktor, måler kWh)
         |                                                     |
         v                                                     v
 [ Sveve SMS-API ]                                     [ Ladeuttak 400V / 16A ]
 ```
 
-Ved øktslutt (maks kWh/tid nådd, eller manuelt stopp) melder Shelly-scriptet forbrukt energi tilbake via MQTT. Appen trekker `min(maksbeløp, kWh × pris)` via `POST /v1/payments/{paymentId}/charges`, frigjør resten av reservasjonen, og sender SMS med kvitteringslenke (gyldig i 30 dager).
+Shelly-enheten holder selv en utgående WebSocket-forbindelse (`wss://`) åpen mot appen — ingen brannmuråpninger eller broker nødvendig. Ved øktslutt (bilen ferdig, maks kWh/tid nådd, eller manuelt stopp) melder Shelly-scriptet forbrukt energi over samme forbindelse. Appen trekker `min(maksbeløp, kWh × pris)` via `POST /v1/payments/{paymentId}/charges`, frigjør resten av reservasjonen, og sender SMS med kvitteringslenke (gyldig i 30 dager).
 
 ## Arkitektur
 
 | Lag | Komponent | Ansvar |
 |---|---|---|
-| **Applikasjon** | Node.js/TypeScript i Docker på Raven (port 8096) | QR-landing, betalingsflyt mot Nexi, webhook-mottak, sesjoner (SQLite), SMS via Sveve |
-| **Meldingsbuss** | Mosquitto MQTT-broker i Docker (port 8097) | Kommandoer til og hendelser fra ladeenhetene |
+| **Applikasjon** | Node.js/TypeScript i Docker på Raven (port 8096) | QR-landing, betalingsflyt mot Nexi, webhook-mottak, WebSocket-endepunkt for enhetene, sesjoner (SQLite), SMS via Sveve |
 | **Styring** | Shelly Pro 3EM 120A V2 + Switch Add-on (Shelly-script) | kWh-måling, kontaktorstyring, lokal autonomi (slår av selv ved grense — også uten nett) |
 | **Effekt** | CHINT NCH8 kontaktor (25A, 4-pol) | Fysisk inn-/utkobling av trefasestrøm (400V TN, maks 16A) |
 
-- **Offentlig HTTPS** (for QR-URL-er og Nexi-webhooks) går i dag via Tailscale Funnel på Raven. Raven har fast IP, og eget domene/DNS er planlagt — derfor er alle URL-er konfigurert via én `BASE_URL`-miljøvariabel.
+- **Offentlig HTTPS** (for QR-URL-er, Nexi-webhooks og enhets-WebSockets) går i dag via Tailscale Funnel på Raven. Raven har fast IP, og eget domene/DNS er planlagt — derfor er alle URL-er konfigurert via én `BASE_URL`-miljøvariabel.
+- **Enhetskommunikasjon uten brannmurendringer:** Ladeenhetene står på KODE15-wifi, isolert fra Raven-sonen. I stedet for brannmurregler (dyre å endre via Borg Commit) bruker enhetene Shelly «Outbound WebSocket»: de kobler selv utover til appen via HTTPS/443. Nye ladere trenger kun én URL i oppsettet.
+- **Driftsparametre er innstillinger:** Pris per kWh, maksbeløp og øktslutt-regler ligger i databasen (standard: 5 kr/kWh, 200 kr, ferdig-deteksjon < 100 W i 10 min, makstid 12 t) og skal redigeres i et fremtidig admin-grensesnitt.
 - **Flerenhetsmodell:** Hver QR-kode er en URL med `enhet`- og `produkt`-parametre. Én enhet kan ha flere QR-koder (f.eks. «Start lading» med fast maksbeløp, eller «Velg maksbeløp» med beløpsvalg). Nye ladeenheter legges til i konfigurasjonen uten arkitekturendringer.
 - **Ingen omflashing:** Shelly-enheten kjører original fastvare med et innebygd JavaScript (Shelly Scripting) — RPC-API, OTA og garanti beholdes.
 
@@ -59,8 +60,9 @@ Betalingslaget bygger på **Nets Easy Payment API (Nexi Checkout)** med avtalene
 ## Status og veien videre
 
 - **Fase 0 (fullført):** Prosjektbeskrivelse, komponentvalg og innkjøp, gjenåpnet Nets-avtale (nå registrert på Kode15 AS), sandkasse-nøkler hentet, arkitektur besluttet
-- **Fase 1 (pågår):** Betalingsflyt, MQTT, SMS og simulert lader — bygges og testes i sandkassen på Raven før maskinvaren ankommer
-- **Fase 2:** Enhetsintegrasjon på testbenk (Shelly-script, ekte kWh-måling, autonomitesting)
-- **Fase 3:** Produksjonssetting med live-nøkler, QR-koder, eget domene/DNS
+- **Maskinvare (2026-08-12):** Shelly Pro 3EM ankommet, på KODE15-wifi og ferdig konfigurert med utgående WebSocket mot appen — MQTT/Mosquitto er erstattet av WebSocket (se [handover/2026-08-12-websocket-arkitektur.md](handover/2026-08-12-websocket-arkitektur.md))
+- **Fase 1 (pågår):** Betalingsflyt, WebSocket-endepunkt, SMS og simulert lader — bygges og testes i sandkassen på Raven
+- **Fase 2:** Testbenk med ekte maskinvare (Shelly-script, kontaktor via elektriker, ekte kWh-måling, autonomitesting)
+- **Fase 3:** Produksjonssetting med live-nøkler, adminpassord på enheten, QR-koder, eget domene/DNS
 
 Detaljert fase-plan: [handover/HANDOVER.md](handover/HANDOVER.md)
