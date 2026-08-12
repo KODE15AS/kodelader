@@ -73,8 +73,9 @@ Mål: Hele kjeden fungerer ende-til-ende i Nexi-sandkassen med en **simulert** l
 - [x] Web: brukerside (status + «Avslutt lading» + historikk), kvitteringsside og vilkårsside (30 dagers levetid, SQLite). *Beløpsvalg-siden utgikk — QR-koden bestemmer maksbeløpet direkte*
 - [x] Utkast til Shelly-script (`device/kodelader-session.js`) — lokal autonomi (maks kWh/tid, ferdig-deteksjon) via KVS-grenser, testes i fase 2
 - [x] QR-koder generert (`app/scripts/generate-qr.mjs` → `docs/qr/`) for proto1 kr1/kr100 + simulator
-- [ ] Deploy på Raven: klone til `~/dev/kodelader`, `docker compose up -d --build`, Funnel-rute `/kodelader` → 8096, admin via tailnett → 8097
-- [ ] Ende-til-ende-verifisering i sandkassen (se sjekkliste under)
+- [x] Deploy på Raven (2026-08-12): klonet til `~/dev/kodelader`, `docker compose up -d --build`, Funnel-rute `/kodelader` → 8096 lagt til uten å røre Masskette-ruta på `/`. Admin nås på tailnettet: `http://cadify104raven.tail14de1b.ts.net:8097`. `.env` kopiert manuelt (aldri i repo). **Lærdom:** Nexi krever webhook-autorisasjon på 8–32 alfanumeriske tegn — ellers HTTP 400 på create payment
+- [x] **Ekte Shelly tilkoblet gjennom Funnel:** `shellypro3em-1c8f57034ae4` koblet seg på `/kodelader/ws` umiddelbart etter deploy og leverer målerdata (0 W — CT-er monteres i fase 2). Outbound WebSocket-arkitekturen er dermed verifisert ende-til-ende
+- [ ] Ende-til-ende-verifisering i sandkassen (se sjekkliste under) — **gjenstår kun selve testbetalingen gjennom hosted checkout (krever menneske med testkort/Vipps)**
 
 ### Web-UI (bygget 2026-08-12)
 
