@@ -142,6 +142,11 @@ godkjenning i MT-appen → lading → auto-avslutning ved maksbeløp → full ca
 - **Fremtidig mulighet (fase 4+):** Vipps' egen ePayment API med «profile sharing» gir mobilnummer
   automatisk med kundens samtykke i appen — krever egen Vipps-avtale og et parallelt betalingsløp
   ved siden av Nexi. Vurderes hvis frivillig SMS-andel viser seg for lav i drift
+- **Fremtidig mulighet (finpuss, fase 3/4):** Sveve **kodeord** for innkommende SMS
+  (150 kr/mnd + 500 kr etablering, kortnummer f.eks. 27333). Statussiden viser en ferdig utfylt
+  `sms:`-lenke («KODELADER» til kortnummeret) — kunden trykker send, Sveve videresender til
+  vårt webhook med avsenderens nummer, vi matcher mot aktiv økt. To trykk, null tasting,
+  verifisert nummer, helt uten Nets/Vipps. Krever ett nytt endepunkt i appen
 
 ### Gjenstår i fase 2
 - [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)
