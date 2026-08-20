@@ -50,6 +50,8 @@ Betalingslaget bygger på **Nets Easy Payment API (Nexi Checkout)** med avtalene
 - Webhooken `payment.checkout.completed` er triggeren som aktiverer laderen; kundens mobilnummer (fra Vipps-profilen) følger med og brukes til SMS-varsling
 - Paylink/One-Page-Shop benyttes ikke (krever tilleggsavtale, og One-Page-Shop mangler Vipps) — appen videresender direkte til hosted checkout
 
+**Vipps i testmiljøet** aktiveres ikke automatisk: Nexi-support (`ecom-no@nexigroup.com`) må skru det på per test-Merchant-ID, og testing gjøres med Vipps MT-appen og dummy-bruker. Full logg: [docs/betalingsavtale-nets/README.md](docs/betalingsavtale-nets/README.md) og «Etablering»-fanen i admin.
+
 ## Sikkerhet
 
 - **Ingen hemmeligheter i sikringsskapet:** API-nøkler ligger kun i `.env` på Raven (aldri i repoet — se `.gitignore`)

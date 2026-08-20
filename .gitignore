@@ -1,5 +1,6 @@
 # Sensitive dokumenter — holdes lokalt, skal ikke til offentlig repo
-docs/betaling/*.pdf
+docs/betalingsavtale-nets/*.pdf
+docs/betalingsavtale-nets/*.msg
 
 # Hemmeligheter og miljøvariabler
 .env
