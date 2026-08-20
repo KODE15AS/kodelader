@@ -74,7 +74,8 @@ const defaultSettings: Record<string, string> = {
   idle_threshold_w: "100",      // ferdig-deteksjon: effekt under dette ...
   idle_minutes: "10",           // ... i så mange minutter -> avslutt
   max_session_hours: "12",      // makstid per økt (sikkerhetsnett)
-  receipt_days: "30"            // kvitteringens levetid
+  receipt_days: "30",           // kvitteringens levetid
+  skip_checkout_form: "1"       // 1 = skjul navn/adresse-skjemaet i checkout (merchantHandlesConsumerData)
 };
 
 export function getSetting(key: string): string {

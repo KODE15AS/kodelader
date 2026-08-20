@@ -176,6 +176,13 @@
           <input type="number" bind:value={settingsData.settings.max_session_hours} />
         </div>
       </div>
+      <h2 style="margin-top:18px">Checkout</h2>
+      <label>Navn/adresse-skjema i checkout</label>
+      <select bind:value={settingsData.settings.skip_checkout_form}>
+        <option value="1">Skjult — kunden går rett til betalingsvalg (anbefalt)</option>
+        <option value="0">Vises — checkout samler navn, adresse og mobilnummer</option>
+      </select>
+      <p class="muted">Slå på skjemaet igjen hvis mobilnummeret uteblir fra betalingsdataene (sjekk Etablering-fanen etter en testøkt).</p>
       <p><button on:click={saveSettings}>Lagre innstillinger</button> <span class="muted">{saveMsg}</span></p>
     </div>
   {/if}

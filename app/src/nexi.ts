@@ -1,5 +1,5 @@
 import { config } from "./config.js";
-import { logEvent, setCheck } from "./db.js";
+import { getSetting, logEvent, setCheck } from "./db.js";
 
 /** Minimal klient mot Nexi Checkout (Nets Easy) Payment API. */
 
@@ -50,7 +50,9 @@ export async function createPayment(sessionId: string, amountOre: number, label:
       cancelUrl: `${config.baseUrl}/?cancelled=${sessionId}`,
       termsUrl: `${config.baseUrl}/vilkar`,
       charge: false,
-      merchantHandlesConsumerData: false
+      // true = ikke noe navn/adresse-skjema i checkout — kunden går rett til betalingsvalg.
+      // Styres fra admin (Innstillinger) i tilfelle mobilnummeret uteblir fra betalingsdataene.
+      merchantHandlesConsumerData: getSetting("skip_checkout_form") === "1"
     },
     notifications: {
       webHooks: [
