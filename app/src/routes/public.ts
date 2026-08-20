@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, logEvent, setCheck, getSetting } from "../db.js";
 import { config } from "../config.js";
 import { startSession, activateSession, endSession, findSession, maskPhone, deviceOnline } from "../sessions.js";
+import { cachedStatus } from "../devicehub.js";
 
 export const publicRouter = Router();
 
@@ -46,11 +47,24 @@ publicRouter.get("/api/state", (req, res) => {
   const history = db.prepare(
     "SELECT * FROM sessions WHERE device_id=? AND status IN ('completed','capture_failed') ORDER BY ended_at DESC LIMIT 20"
   ).all(deviceId) as any[];
+  // Bruk ferskeste måling rett fra enhetens WebSocket-strøm for aktiv økt,
+  // slik at kWh/beløp på brukersiden følger måleren tett mellom serverens tick
+  let activeOut = active ? publicSession(active) : null;
+  if (active && activeOut) {
+    const dev = db.prepare("SELECT shelly_id FROM devices WHERE id=?").get(deviceId) as { shelly_id: string } | undefined;
+    if (dev) {
+      const live = cachedStatus(dev.shelly_id);
+      if (live.energyWh !== null && active.start_energy_wh !== null) {
+        activeOut.kwh = Math.max(activeOut.kwh, Math.round((live.energyWh - active.start_energy_wh)) / 1000);
+      }
+      if (live.power !== null) activeOut.powerW = live.power;
+    }
+  }
   res.json({
     device: deviceId,
     online: deviceOnline(deviceId),
     env: config.isLive() ? "SKARP" : "SANDKASSE",
-    active: active ? publicSession(active) : null,
+    active: activeOut,
     history: history.map(publicSession)
   });
 });

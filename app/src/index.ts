@@ -49,8 +49,18 @@ admin.listen(config.adminPort, () => {
 });
 
 // ---- Øktovervåking ----
-setInterval(() => {
-  tick().catch((err) => logEvent("tick-feil", err.message));
-}, 15_000);
+// 5 s gir jevn beløpsoppdatering på brukersiden; guard hindrer overlappende kjøringer
+let ticking = false;
+setInterval(async () => {
+  if (ticking) return;
+  ticking = true;
+  try {
+    await tick();
+  } catch (err) {
+    logEvent("tick-feil", (err as Error).message);
+  } finally {
+    ticking = false;
+  }
+}, 5_000);
 
 logEvent("app", `Kodelader startet — miljø: ${config.isLive() ? "SKARP" : "SANDKASSE"}`);
