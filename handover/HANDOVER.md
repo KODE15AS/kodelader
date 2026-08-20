@@ -113,8 +113,24 @@ Reell capture og rest-frigivelse kan først verifiseres med en ekte testbetaling
 
 ## Fase 2 (testbenk med ekte maskinvare)
 
-- [ ] Switch Add-on + kontaktor koblet (elektriker), CT-er montert
-- [ ] Shelly-script installert: ekte kWh-måling inn i sesjons- og betalingslogikken
+### Benketest énfas 230 V gjennomført (2026-08-19/20)
+
+Prøveoppkobling med varmeovn (~1,8 kW) som last, dokumentert i
+[docs/hardware/testoppkobling-230v.md](../docs/hardware/testoppkobling-230v.md):
+
+- [x] Switch Add-on montert på Pro 3EM og aktivert (Add-on-type «Switch» + Switch-peripheral lagt til i Shelly-UI — begge steg kreves før `switch:100` finnes)
+- [x] Kontaktor styrt fra admin-UI over WebSocket (PÅ/AV verifisert flere ganger)
+- [x] Ekte kWh-måling inn i appen: spenning på klemme **C** + CT **C** på samme fase (spenning og CT må være på samme kanal, ellers 0 W)
+- [x] **Full ende-til-ende på ekte maskinvare:** QR → Nexi-checkout (testkort) → webhook → kontaktor inn → varmeovn på 1776 W → «Avslutt lading» → kontaktor ut → capture 78 øre for 0,156 kWh, rest frigitt → kvittering
+- [x] Auto-avslutning ved maksbeløp verifisert på ekte last (testpris 30 kr/kWh for hurtigtest)
+- [x] Prislås verifisert: prisendring i admin påvirker ikke pågående økt, kun nye
+- [x] Forbedring etter test: 5 s måletakt + ferskeste WS-måling i `/api/state` for jevn beløpsvisning (før: 15 s tick ga synlige hopp ved høy pris)
+
+### Gjenstår i fase 2
+
+- [ ] Vipps i sandkassen: krever (1) at Nexi-support aktiverer Vipps på test-MID 100009760 og (2) Vipps MT-testappen med dummy-bruker (+47 997 67 804, PIN 1236)
+- [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)
+- [ ] Shelly-script installert: lokal autonomi med KVS-grenser
 - [ ] Autonomitest: trekk nettverket midt i en økt — enheten skal slå av selv ved grense
 
 ## Fase 3 (produksjon)
