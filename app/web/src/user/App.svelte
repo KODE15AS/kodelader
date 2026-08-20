@@ -9,6 +9,14 @@
   const params = new URLSearchParams(location.search);
   const focusSession = params.get("session");
 
+  // Husk siste aktive økt slik at vi kan vise «ferdig»-kortet (med SMS-felt)
+  // også når økten avsluttes mens kunden ser på
+  let lastActiveId: string | null = focusSession;
+  $: if (state?.active) lastActiveId = state.active.id;
+  $: finished = !state?.active && lastActiveId
+    ? state?.history?.find((h: any) => h.id === lastActiveId) ?? null
+    : null;
+
   // Kall API relativt slik at det fungerer både bak /kodelader og på rot
   const base = location.pathname.includes("/kodelader") ? "/kodelader" : "";
 
@@ -27,16 +35,17 @@
   }
 
   async function savePhone() {
-    if (!state?.active || !phoneInput.trim()) return;
+    const sessionId = state?.active?.id ?? finished?.id;
+    if (!sessionId || !phoneInput.trim()) return;
     phoneMsg = "Lagrer …";
-    const res = await fetch(`${base}/api/session/${state.active.id}/phone`, {
+    const res = await fetch(`${base}/api/session/${sessionId}/phone`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone: phoneInput })
     });
     if (res.ok) {
       phoneSaved = true;
-      phoneMsg = "Du får SMS når ladingen er ferdig ✓";
+      phoneMsg = state?.active ? "Du får SMS når ladingen er ferdig ✓" : "Kvittering sendes på SMS ✓";
       refresh();
     } else {
       phoneMsg = (await res.json().catch(() => null))?.error ?? "Noe gikk galt — prøv igjen";
@@ -76,7 +85,7 @@
         <span class="lamp {state.online ? 'green' : 'grey'}"></span>
         Lader {state.online ? "tilkoblet" : "frakoblet"}
       </h2>
-      {#if focusSession && !state.active}
+      {#if focusSession && !state.active && !finished}
         <p class="muted">Betaling mottatt — venter på at ladingen starter …</p>
       {/if}
 
@@ -112,6 +121,20 @@
         <button class="big danger" on:click={stop} disabled={stopping}>
           {stopping ? "Avslutter …" : "Avslutt lading"}
         </button>
+      {:else if finished}
+        <p><strong>Ladeøkten er ferdig</strong> — {finished.kwh.toFixed(2).replace(".", ",")} kWh for {kr(finished.amountOre)}.</p>
+        <p class="muted">Flytt bilen om nødvendig slik at andre kan lade.</p>
+        {#if finished.phone === "—" && !phoneSaved}
+          <label>Få kvitteringen på SMS (valgfritt)</label>
+          <div style="display:flex;gap:8px">
+            <input placeholder="Mobilnummer" inputmode="tel" bind:value={phoneInput} />
+            <button class="ghost" on:click={savePhone}>Send</button>
+          </div>
+          <p class="muted">{phoneMsg}</p>
+        {:else if phoneMsg}
+          <p class="muted">{phoneMsg}</p>
+        {/if}
+        <a class="ghost" href="{base}/kvittering/{finished.id}">Vis kvittering</a>
       {:else}
         <p>Ingen aktiv ladeøkt. Skann QR-koden på laderen for å starte.</p>
       {/if}

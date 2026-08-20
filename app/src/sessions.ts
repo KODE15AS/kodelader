@@ -121,15 +121,21 @@ export async function endSession(sessionId: string, reason: string): Promise<voi
     .run(captured || amountOre === 0 ? "completed" : "capture_failed", round3(kwh), amountOre, reason, new Date().toISOString(), finalEnergy, sessionId);
   logEvent("økt", `Økt ${sessionId} avsluttet (${reason}): ${round3(kwh)} kWh, ${amountOre} øre`, sessionId);
 
-  if (session.phone) {
-    const kr = (amountOre / 100).toFixed(2).replace(".", ",");
-    const kwhTxt = kwh.toFixed(2).replace(".", ",");
-    const msg = `Ladeøkten hos KODE15 as er ferdig, du har ladet ${kwhTxt} kWh for Kr. ${kr}. ` +
-      `Flytt bilen om nødvendig for at andre skal kunne lade. ` +
-      `Her er link til kvittering som vil være tilgjengelig i 30 dager: ${config.baseUrl}/kvittering/${sessionId}`;
-    const ok = await sendSms(session.phone, msg);
-    if (ok) db.prepare("UPDATE sessions SET sms2_sent=1 WHERE id=?").run(sessionId);
-  }
+  await sendFinishSms(sessionId);
+}
+
+/** SMS 2 (ferdig + kvitteringslenke). Kan også ettersendes dersom kunden
+ *  registrerer mobilnummer på statussiden først etter at økten er avsluttet. */
+export async function sendFinishSms(sessionId: string): Promise<void> {
+  const session = findSession(sessionId);
+  if (!session?.phone || session.sms2_sent || session.amount_ore == null) return;
+  const kr = (session.amount_ore / 100).toFixed(2).replace(".", ",");
+  const kwhTxt = session.kwh.toFixed(2).replace(".", ",");
+  const msg = `Ladeøkten hos KODE15 as er ferdig, du har ladet ${kwhTxt} kWh for Kr. ${kr}. ` +
+    `Flytt bilen om nødvendig for at andre skal kunne lade. ` +
+    `Her er link til kvittering som vil være tilgjengelig i 30 dager: ${config.baseUrl}/kvittering/${sessionId}`;
+  const ok = await sendSms(session.phone, msg);
+  if (ok) db.prepare("UPDATE sessions SET sms2_sent=1 WHERE id=?").run(sessionId);
 }
 
 /** Periodisk overvåking: oppdater målinger og håndhev øktslutt-reglene. */

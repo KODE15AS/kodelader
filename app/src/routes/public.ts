@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, logEvent, setCheck, getSetting } from "../db.js";
 import { config } from "../config.js";
-import { startSession, activateSession, endSession, findSession, maskPhone, deviceOnline } from "../sessions.js";
+import { startSession, activateSession, endSession, sendFinishSms, findSession, maskPhone, deviceOnline } from "../sessions.js";
 import { cachedStatus } from "../devicehub.js";
 import { sendSms } from "../sveve.js";
 
@@ -84,6 +84,9 @@ publicRouter.post("/api/session/:id/phone", async (req, res) => {
   if (session.status === "active" && !session.sms1_sent) {
     const ok = await sendSms(phone, "Elbil ladeøkt startet hos KODE15 as, og du får ny beskjed når ladingen er ferdig.");
     if (ok) db.prepare("UPDATE sessions SET sms1_sent=1 WHERE id=?").run(session.id);
+  } else if (session.status === "completed" || session.status === "capture_failed") {
+    // Økten rakk å bli ferdig før nummeret ble registrert — ettersend kvitterings-SMS-en
+    await sendFinishSms(session.id);
   }
   res.json({ ok: true });
 });
