@@ -126,9 +126,24 @@ Prøveoppkobling med varmeovn (~1,8 kW) som last, dokumentert i
 - [x] Prislås verifisert: prisendring i admin påvirker ikke pågående økt, kun nye
 - [x] Forbedring etter test: 5 s måletakt + ferskeste WS-måling i `/api/state` for jevn beløpsvisning (før: 15 s tick ga synlige hopp ved høy pris)
 
-### Gjenstår i fase 2
+### Vipps verifisert i sandkassen (2026-08-20)
 
-- [ ] Vipps i sandkassen: krever (1) at Nexi-support aktiverer Vipps på test-MID 100009760 og (2) Vipps MT-testappen med dummy-bruker (+47 997 67 804, PIN 1236)
+Nexi-support aktiverte Vipps på test-MID 100009760 samme dag som forespørselen ble sendt.
+Testet ende-til-ende med Vipps MT-appen (TestFlight) og delt testbruker: QR → Vipps i checkout →
+godkjenning i MT-appen → lading → auto-avslutning ved maksbeløp → full capture. Funn:
+
+- **Vipps deler IKKE kundedata gjennom Nexi-checkouten.** Mobilnummeret kunden oppgir i
+  Vipps-steget brukes kun til å rute betalingen. Med skjult checkout-skjema
+  (`merchantHandlesConsumerData: true`) er betalingsobjektets consumer-data helt tomme
+  (verifisert med GET /v1/payments). Med synlig skjema kommer nummeret fra det kunden
+  *taster i skjemaet* — heller ikke da fra Vipps-profilen
+- **Valgt løsning:** checkout-skjemaet holdes skjult (ren flyt, innstilling i admin), og SMS-varsling
+  er **valgfri**: kunden kan oppgi mobilnummer på statussiden etter betaling. Ryddig personvernmessig
+- **Fremtidig mulighet (fase 4+):** Vipps' egen ePayment API med «profile sharing» gir mobilnummer
+  automatisk med kundens samtykke i appen — krever egen Vipps-avtale og et parallelt betalingsløp
+  ved siden av Nexi. Vurderes hvis frivillig SMS-andel viser seg for lav i drift
+
+### Gjenstår i fase 2
 - [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)
 - [ ] Shelly-script installert: lokal autonomi med KVS-grenser
 - [ ] Autonomitest: trekk nettverket midt i en økt — enheten skal slå av selv ved grense
