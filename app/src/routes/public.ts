@@ -3,6 +3,7 @@ import { db, logEvent, setCheck, getSetting } from "../db.js";
 import { config } from "../config.js";
 import { startSession, activateSession, endSession, findSession, maskPhone, deviceOnline } from "../sessions.js";
 import { cachedStatus } from "../devicehub.js";
+import { sendSms } from "../sveve.js";
 
 export const publicRouter = Router();
 
@@ -67,6 +68,24 @@ publicRouter.get("/api/state", (req, res) => {
     active: activeOut,
     history: history.map(publicSession)
   });
+});
+
+/** Valgfri SMS-registrering: kunden oppgir mobilnummer på statussiden etter betaling.
+ *  Nødvendig når checkout-skjemaet er skjult — da følger ingen kundedata med fra Nexi/Vipps. */
+publicRouter.post("/api/session/:id/phone", async (req, res) => {
+  const session = findSession(req.params.id);
+  if (!session) { res.status(404).json({ error: "Ukjent økt" }); return; }
+  const raw = String(req.body?.phone ?? "").replace(/[\s\-()]/g, "");
+  const m = raw.match(/^(?:\+47|0047)?([49]\d{7})$/);
+  if (!m) { res.status(400).json({ error: "Oppgi et gyldig norsk mobilnummer" }); return; }
+  const phone = `+47${m[1]}`;
+  db.prepare("UPDATE sessions SET phone=? WHERE id=?").run(phone, session.id);
+  logEvent("økt", `Mobilnummer registrert for SMS-varsling på økt ${session.id} (${maskPhone(phone)})`, session.id);
+  if (session.status === "active" && !session.sms1_sent) {
+    const ok = await sendSms(phone, "Elbil ladeøkt startet hos KODE15 as, og du får ny beskjed når ladingen er ferdig.");
+    if (ok) db.prepare("UPDATE sessions SET sms1_sent=1 WHERE id=?").run(session.id);
+  }
+  res.json({ ok: true });
 });
 
 /** Kunden avslutter fra statussiden (krever sesjons-ID fra retur-URL/SMS). */

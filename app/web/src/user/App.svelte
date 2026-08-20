@@ -3,6 +3,9 @@
 
   let state: any = null;
   let stopping = false;
+  let phoneInput = "";
+  let phoneMsg = "";
+  let phoneSaved = false;
   const params = new URLSearchParams(location.search);
   const focusSession = params.get("session");
 
@@ -21,6 +24,23 @@
     stopping = true;
     await fetch(`${base}/api/session/${state.active.id}/stop`, { method: "POST" });
     setTimeout(async () => { await refresh(); stopping = false; }, 1500);
+  }
+
+  async function savePhone() {
+    if (!state?.active || !phoneInput.trim()) return;
+    phoneMsg = "Lagrer …";
+    const res = await fetch(`${base}/api/session/${state.active.id}/phone`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: phoneInput })
+    });
+    if (res.ok) {
+      phoneSaved = true;
+      phoneMsg = "Du får SMS når ladingen er ferdig ✓";
+      refresh();
+    } else {
+      phoneMsg = (await res.json().catch(() => null))?.error ?? "Noe gikk galt — prøv igjen";
+    }
   }
 
   function kr(ore: number | null): string {
@@ -79,6 +99,16 @@
           Startet {dt(state.active.startedAt)} · maks {kr(state.active.maxAmountOre)} ·
           {(state.active.pricePerKwhOre / 100).toFixed(2).replace(".", ",")} kr/kWh
         </p>
+        {#if state.active.phone === "—" && !phoneSaved}
+          <label>Få SMS med kvittering når ladingen er ferdig (valgfritt)</label>
+          <div style="display:flex;gap:8px">
+            <input placeholder="Mobilnummer" inputmode="tel" bind:value={phoneInput} />
+            <button class="ghost" on:click={savePhone}>Lagre</button>
+          </div>
+          <p class="muted">{phoneMsg}</p>
+        {:else if phoneMsg}
+          <p class="muted">{phoneMsg}</p>
+        {/if}
         <button class="big danger" on:click={stop} disabled={stopping}>
           {stopping ? "Avslutter …" : "Avslutt lading"}
         </button>

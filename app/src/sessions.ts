@@ -61,7 +61,11 @@ export async function activateSession(paymentId: string, consumer: any): Promise
     try { phone = phoneFrom((await getPayment(paymentId))?.consumer); } catch { /* ok */ }
   }
   if (phone) setCheck("phone_present", "green", maskPhone(phone));
-  else setCheck("phone_present", "red", "Mangler i både webhook og payment-oppslag");
+  else if (getSetting("skip_checkout_form") === "1") {
+    setCheck("phone_present", "grey", "Forventet tomt: checkout-skjema er skjult — SMS registreres valgfritt på statussiden");
+  } else {
+    setCheck("phone_present", "red", "Mangler i både webhook og payment-oppslag");
+  }
 
   const device = deviceRow(session.device_id);
   let startEnergy: number | null = null;
