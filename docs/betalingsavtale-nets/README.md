@@ -18,7 +18,7 @@ Speiler «Etablering»-fanen i admin-grensesnittet (lampene der er fasiten).
 | 2026-07-23 | Avtale gjenåpnet og omregistrert til Kode15 AS, sandkasse-nøkler hentet | ✅ |
 | 2026-08-12 | Kortbetaling ende-til-ende i sandkassen (simulator): reservasjon → webhook → capture | ✅ |
 | 2026-08-20 | Kortbetaling ende-til-ende på ekte maskinvare (benketest, varmeovn) | ✅ |
-| 2026-08-20 | E-post til `ecom-no@nexigroup.com`: be om Vipps aktivert i **testmiljøet** på MID 100009760 (e-posten arkivert lokalt i denne mappen, utenfor repo) | ⏳ venter svar |
+| 2026-08-20 | E-post til `ecom-no@nexigroup.com`: be om Vipps aktivert i **testmiljøet** på MID 100009760 — [PDF](2026-08-20-vipps-testaktivering-epost.pdf) | ⏳ venter svar |
 | — | Vipps testet ende-til-ende med Vipps MT-appen (dummy-bruker +47 997 67 804, PIN 1236) | ⬜ |
 | — | Live-nøkler i `.env` på Raven + første skarpe betaling (fase 3) | ⬜ |
 

@@ -1,6 +1,7 @@
 # Sensitive dokumenter — holdes lokalt, skal ikke til offentlig repo
 docs/betalingsavtale-nets/*.pdf
 docs/betalingsavtale-nets/*.msg
+!docs/betalingsavtale-nets/2026-08-20-vipps-testaktivering-epost.pdf
 
 # Hemmeligheter og miljøvariabler
 .env
