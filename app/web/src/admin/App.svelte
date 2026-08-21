@@ -183,6 +183,12 @@
         <option value="0">Vises — checkout samler navn, adresse og mobilnummer</option>
       </select>
       <p class="muted">Slå på skjemaet igjen hvis mobilnummeret uteblir fra betalingsdataene (sjekk Etablering-fanen etter en testøkt).</p>
+      <label>Betalingsmetoder i checkout</label>
+      <select bind:value={settingsData.settings.payment_methods}>
+        <option value="vipps">Kun Vipps (anbefalt)</option>
+        <option value="alle">Alle metoder — Vipps, kort m.m. (kort vises som default, styrt av Nexi)</option>
+      </select>
+      <p class="muted">Gjelder neste økt som startes. «Kun Vipps» utelukker kunder uten Vipps-app.</p>
       <p><button on:click={saveSettings}>Lagre innstillinger</button> <span class="muted">{saveMsg}</span></p>
     </div>
   {/if}

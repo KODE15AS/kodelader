@@ -54,6 +54,11 @@ export async function createPayment(sessionId: string, amountOre: number, label:
       // Styres fra admin (Innstillinger) i tilfelle mobilnummeret uteblir fra betalingsdataene.
       merchantHandlesConsumerData: getSetting("skip_checkout_form") === "1"
     },
+    // «Kun Vipps» skjuler kortskjemaet helt (rekkefølge/forvalg ved flere metoder styres av Nexi).
+    // Metoder som ikke er nevnt i listen blir implisitt deaktivert.
+    ...(getSetting("payment_methods") === "vipps"
+      ? { paymentMethodsConfiguration: [{ name: "Vipps", enabled: true }] }
+      : {}),
     notifications: {
       webHooks: [
         {

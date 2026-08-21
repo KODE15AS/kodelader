@@ -75,7 +75,8 @@ const defaultSettings: Record<string, string> = {
   idle_minutes: "10",           // ... i så mange minutter -> avslutt
   max_session_hours: "12",      // makstid per økt (sikkerhetsnett)
   receipt_days: "30",           // kvitteringens levetid
-  skip_checkout_form: "1"       // 1 = skjul navn/adresse-skjemaet i checkout (merchantHandlesConsumerData)
+  skip_checkout_form: "1",      // 1 = skjul navn/adresse-skjemaet i checkout (merchantHandlesConsumerData)
+  payment_methods: "vipps"      // "vipps" = kun Vipps i checkout — "alle" = alt avtalen dekker (kort vises som default)
 };
 
 export function getSetting(key: string): string {
