@@ -262,9 +262,9 @@ Deploy på Raven + scriptinstallasjon på ekte Shelly gikk knirkefritt (én knap
   `live_payment` i admin, sett «Betalingsmetoder» tilbake til ønsket verdi
 - [ ] ~~Trefaseinstallasjon 400 V TN med elektriker~~ — UTSATT (2026-08-21), tas som egen
   aktivitet senere (CT på alle tre faser, kontaktorens fire poler)
-- Husk: kr1-produktet står fortsatt med testpris 30 kr/kWh fra benketestene — settes tilbake
-  (5 kr/kWh) eller justeres bevisst før skarp drift. Og adminpassord på Shelly-en (fase 3-krav)
-  bør settes nå som ekte penger er i spill
+- **Besluttet 2026-08-21:** kr1-testprisen (30 kr/kWh) og adminpassord på Shelly-en VENTER
+  bevisst til all funksjonalitet er på plass og ferdig testet (inkl. kobling mot bilen —
+  kan drøye). Begge står som sjekkpunkter i admin og i fase 3-listen, så de glemmes ikke
 
 ## Fase 3 (produksjon)
 
