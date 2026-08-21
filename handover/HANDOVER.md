@@ -8,6 +8,7 @@ Daterte overganger:
 - **2026-07-23 — Fase 0 til Fase 1** (oppstart)
 - **2026-08-12 — Maskinvare ankommet, arkitekturendring MQTT → WebSocket** (se [2026-08-12-websocket-arkitektur.md](2026-08-12-websocket-arkitektur.md))
 - **2026-08-12 — Fase 1 bygget og verifisert lokalt mot Nexi-sandkassen** (gjenstår: deploy på Raven + ekte betaling gjennom checkout)
+- **2026-08-21 — Sandkasse-verifisering komplett.** Hele kundeflyten (QR → Vipps → lading → auto-/manuell avslutning → capture → SMS med kvittering) verifisert ende-til-ende på ekte maskinvare, inkludert kun-Vipps-checkout, cookie-parring og forhåndsutfylt nummer i Vipps-steget. Neste: trefaseinstallasjon med elektriker (fase 2) og produksjonssetting (fase 3)
 
 ---
 
@@ -75,7 +76,7 @@ Mål: Hele kjeden fungerer ende-til-ende i Nexi-sandkassen med en **simulert** l
 - [x] QR-koder generert (`app/scripts/generate-qr.mjs` → `docs/qr/`) for proto1 kr1/kr100 + simulator
 - [x] Deploy på Raven (2026-08-12): klonet til `~/dev/kodelader`, `docker compose up -d --build`, Funnel-rute `/kodelader` → 8096 lagt til uten å røre Masskette-ruta på `/`. Admin nås på tailnettet: `http://cadify104raven.tail14de1b.ts.net:8097`. `.env` kopiert manuelt (aldri i repo). **Lærdom:** Nexi krever webhook-autorisasjon på 8–32 alfanumeriske tegn — ellers HTTP 400 på create payment
 - [x] **Ekte Shelly tilkoblet gjennom Funnel:** `shellypro3em-1c8f57034ae4` koblet seg på `/kodelader/ws` umiddelbart etter deploy og leverer målerdata (0 W — CT-er monteres i fase 2). Outbound WebSocket-arkitekturen er dermed verifisert ende-til-ende
-- [ ] Ende-til-ende-verifisering i sandkassen (se sjekkliste under) — **gjenstår kun selve testbetalingen gjennom hosted checkout (krever menneske med testkort/Vipps)**
+- [x] Ende-til-ende-verifisering i sandkassen — fullført 2026-08-21 (se sjekkliste under)
 
 ### Web-UI (bygget 2026-08-12)
 
@@ -102,14 +103,14 @@ Kjørt på utviklingsmaskin med appen på localhost og ekte test-API mot Nexi:
 
 Reell capture og rest-frigivelse kan først verifiseres med en ekte testbetaling gjennom hosted checkout (testkort/Vipps) etter deploy — sjekklisten under.
 
-### Verifiseres i sandkassen
+### Verifisert i sandkassen (alle punkter fullført per 2026-08-21)
 
-- [ ] Delvis capture + frigivelse av rest-reservasjon (spesielt for Vipps-betalinger)
-- [ ] `payment.checkout.completed` leveres som forventet på avtalen
-- [ ] Om Vipps kan testes i sandkassen eller må sluttestes live med småbeløp
-- [ ] Mobilnummer følger med i webhook-payload (grunnlag for SMS)
-- [ ] Funnel-rute `/kodelader` fungerer side om side med eksisterende ruter, inkludert WebSocket-oppgradering på `/kodelader/ws`
-- [ ] Ekte Shelly kobler seg på `/ws` gjennom Funnel (enheten er allerede konfigurert og prøver kontinuerlig)
+- [x] Delvis capture + frigivelse av rest-reservasjon — verifisert med både kort og Vipps
+- [x] `payment.checkout.completed` leveres som forventet på avtalen
+- [x] Vipps kan testes i sandkassen (Nexi-support aktiverer per test-MID, testes med Vipps MT-appen)
+- [x] Mobilnummer følger IKKE med i webhook-payload fra Vipps — løst med valgfritt felt + cookie-parring (se under)
+- [x] Funnel-rute `/kodelader` fungerer side om side med eksisterende ruter, inkludert WebSocket-oppgradering på `/kodelader/ws`
+- [x] Ekte Shelly koblet seg på `/kodelader/ws` gjennom Funnel umiddelbart etter deploy
 
 ## Fase 2 (testbenk med ekte maskinvare)
 
@@ -161,13 +162,34 @@ plattformene) valgt i stedet: ingen månedsavgift, betaling per SMS (~0,5–0,9 
 - **VIKTIG: URL-er i SMS-tekster må hvitelistes** i GatewayAPI-dashbordet (URL Whitelist)
   før sending — gjelder kvitteringslenken. Funnel-domenet er søkt inn; eget domene må søkes
   i fase 3 **før** `BASE_URL` byttes
-- Verifisert 2026-08-21: start-SMS levert skarpt til ekte nummer under en QR/Vipps-testøkt.
-  Ferdig-SMS-en (med kvitteringslenke) ble avvist av URL-filteret mens hvitelisten sto
-  på «waiting» — retestes når den er godkjent
+- Verifisert 2026-08-21: hvitelisten godkjent av GatewayAPI-support samme dag. Begge SMS-er
+  levert skarpt til ekte nummer under QR/Vipps-testøkter — inkludert ferdig-SMS med fungerende
+  kvitteringslenke
 - Ettersendings-fiks (2026-08-20): registreres nummeret etter øktslutt, sendes kvitterings-SMS-en
   i etterkant; statussiden viser «ferdig»-kort med SMS-felt og kvitteringslenke
 - Fremtidig finpuss: leveringsrapporter via GatewayAPI-webhook, slik at hendelsesloggen skiller
   «akseptert» fra «levert»
+
+### Kun Vipps, cookie-parring og forhåndsutfylt nummer (2026-08-21)
+
+Tre friksjonsreduksjoner bygget og verifisert ende-til-ende i sandkassen:
+
+- [x] **Kun Vipps i checkout:** innstillingen «Betalingsmetoder» i admin (standard «Kun Vipps»)
+  sender `paymentMethodsConfiguration` til Nexi slik at kortskjemaet aldri vises — kunden går
+  rett på Vipps. «Alle metoder» kan velges igjen med ett klikk
+- [x] **Cookie-parring:** når kunden registrerer mobilnummer for SMS, settes en cookie (`kl_tlf`,
+  1 års levetid, httpOnly) i nettleseren. Ved neste QR-skanning fra samme nettleser kobles
+  nummeret på økten fra start — SMS 1 og 2 går ut uten tasting. Statussiden viser hvilket nummer
+  som varsles med lenke «glem nummeret på denne enheten» (`POST /api/telefon/glem`).
+  Admin-lampen viser «husket fra tidligere økt (cookie)» som kilde
+- [x] **Forhåndsutfylt Vipps-nummer:** det huskede nummeret sendes som `consumer.phoneNumber`
+  når betalingen opprettes (kun når checkout-skjemaet er skjult). Verifisert i sandkassen:
+  nummerfeltet i Vipps-steget kom ferdig utfylt. I skarp drift app-switcher checkouten normalt
+  rett til Vipps-appen når kunden skanner med samme telefon — nummerfeltet er mest relevant
+  på desktop
+- [ ] **Fremtidig finpuss (vurderes ved skarp drift):** forhåndsavkrysset «I accept terms and
+  conditions» i checkouten for gjengangere — vilkårene er allerede akseptert ved første kjøp.
+  Må vurderes juridisk/mot Nexi-oppsettet før det aktiveres
 
 ### Gjenstår i fase 2
 - [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)

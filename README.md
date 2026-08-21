@@ -58,6 +58,8 @@ Betalingslaget bygger på **Nets Easy Payment API (Nexi Checkout)** med avtalene
 - Testmiljø: `https://test.api.dibspayment.eu` — produksjon: `https://api.dibspayment.eu`
 - Webhooken `payment.checkout.completed` er triggeren som aktiverer laderen
 - **Vipps deler ikke kundedata** (mobilnummer) gjennom checkouten (verifisert aug. 2026) — SMS-varsling er derfor valgfri: kunden kan oppgi nummer på statussiden under eller etter økten
+- **Gjengangere slipper tasting:** registrert nummer huskes i nettleseren (cookie, 1 år) og kobles automatisk på nye økter — inkludert forhåndsutfylt nummer i Vipps-steget. «Glem meg»-lenke på statussiden
+- **Kun Vipps som standard:** kortskjemaet er skjult i checkouten (innstilling i admin — «Alle metoder» kan velges igjen)
 - Paylink/One-Page-Shop benyttes ikke (krever tilleggsavtale, og One-Page-Shop mangler Vipps) — appen videresender direkte til hosted checkout
 
 **Vipps i testmiljøet** aktiveres ikke automatisk: Nexi-support (`ecom-no@nexigroup.com`) må skru det på per test-Merchant-ID, og testing gjøres med Vipps MT-appen og dummy-bruker. Full logg: [docs/betalingsavtale-nets/README.md](docs/betalingsavtale-nets/README.md) og «Etablering»-fanen i admin.
@@ -73,8 +75,8 @@ Betalingslaget bygger på **Nets Easy Payment API (Nexi Checkout)** med avtalene
 
 - **Fase 0 (fullført):** Prosjektbeskrivelse, komponentvalg og innkjøp, gjenåpnet Nets-avtale (nå registrert på Kode15 AS), sandkasse-nøkler hentet, arkitektur besluttet
 - **Maskinvare (2026-08-12):** Shelly Pro 3EM ankommet, på KODE15-wifi og ferdig konfigurert med utgående WebSocket mot appen — MQTT/Mosquitto er erstattet av WebSocket (se [handover/2026-08-12-websocket-arkitektur.md](handover/2026-08-12-websocket-arkitektur.md))
-- **Fase 1 (bygget, deploy gjenstår):** Betalingsflyt mot Nexi-sandkassen, WebSocket-hub, SMS-tekster, simulert lader, brukerside og adminside (enheter/økter/innstillinger/etablering) er bygget og verifisert lokalt — gjenstår deploy på Raven og ekte testbetaling gjennom checkout
-- **Fase 2:** Testbenk med ekte maskinvare (Shelly-script, kontaktor via elektriker, ekte kWh-måling, autonomitesting)
+- **Fase 1 (fullført):** Betalingsflyt mot Nexi-sandkassen, WebSocket-hub, SMS via GatewayAPI, brukerside og adminside (enheter/økter/innstillinger/etablering) — deployet på Raven og verifisert med ekte betalinger gjennom checkout
+- **Fase 2 (benketest fullført 2026-08, sandkassen ferdig verifisert):** Hele kjeden testet ende-til-ende på ekte maskinvare (Shelly + kontaktor + 230 V-last): QR → Vipps → lading → auto-/manuell avslutning → delvis capture → SMS med kvittering. Inkludert kun-Vipps-checkout, cookie-parring for gjengangere og forhåndsutfylt Vipps-nummer. Gjenstår: trefaseinstallasjon 400 V med elektriker, Shelly-script for lokal autonomi
 - **Fase 3:** Produksjonssetting med live-nøkler, adminpassord på enheten, QR-koder, eget domene/DNS
 
 Detaljert fase-plan: [handover/HANDOVER.md](handover/HANDOVER.md)
