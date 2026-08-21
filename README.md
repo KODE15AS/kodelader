@@ -4,6 +4,15 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 
 **Betalingsmodell:** Kunden reserverer et fast maksbeløp ved start, men trekkes kun for faktisk ladet energi (kr/kWh) ved øktslutt.
 
+## Lenker
+
+| Hva | URL | Tilgang |
+|---|---|---|
+| Brukerside (status/økter) | [cadify104raven.tail14de1b.ts.net/kodelader](https://cadify104raven.tail14de1b.ts.net/kodelader) | Offentlig (Tailscale Funnel) |
+| Admin (enheter/økter/innstillinger/etablering) | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) | Kun tailnettet |
+
+QR-kodene (kr 1 og kr 100 for proto1) ligger i [docs/qr/](docs/qr/). Eget domene erstatter Funnel-adressen i fase 3 — da må det nye domenet også hvitelistes hos GatewayAPI før `BASE_URL` byttes.
+
 ## Slik virker det
 
 ```
