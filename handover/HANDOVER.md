@@ -237,13 +237,34 @@ Deploy på Raven + scriptinstallasjon på ekte Shelly gikk knirkefritt (én knap
   (3) `kodelader_autostopp`-hendelsen går tapt om WS er nede i øyeblikket — avstemmingen
   tar over ved rekobling (verifisert her)
 
+### Fase 2.3 — overgang til skarp drift (påbegynt 2026-08-21, venter på Nexi-support)
+
+- [x] Live-nøkler lagt inn i `.env` på Raven (sandkassenøklene bevart i tidsstemplet
+  `.env.bak-sandkasse-*` ved siden av — bytte tilbake er én kopiering + restart)
+- [x] `NEXI_API_BASE` → `https://api.dibspayment.eu`, admin-badge viser SKARP
+- [x] Nøkkeltest grønn mot live-API. Avdekket og fikset samtidig en rutefeil:
+  `POST /api/checks/run-keys` ble fanget av `/api/checks/:id` (registrert først) — knappen
+  «Test API-nøkler nå» har aldri virket før dette
+- [ ] **BLOKKERT: Første skarpe betaling.** Vipps vises i checkout men autorisasjonen feiler
+  («Payment failed», ingen feilkode, API-oppslag viser at ingen reservasjon registreres —
+  eksempel-paymentId `79e956d845d14c4c970dd61ace3d4ef3`). Med «Alle metoder» vises heller
+  ikke kort — **verken EASY CARD eller EASY VIPPS er reelt provisjonert på live-MID 100009760**,
+  selv om portalen viser avtalene som «aktiv». Appen gjør alt riktig (create payment → 201).
+  Mistanke: henger igjen etter omregistreringen Widemore AS → Kode15 AS. E-post sendt til
+  ecom-no@nexigroup.com 2026-08-21 (~kl. 14) — de svarte samme dag ved sandkasse-aktiveringen
+- Merk: innstillingen «Betalingsmetoder» står bevisst på «Alle metoder» inntil support har
+  svart, slik at det synes umiddelbart når kort dukker opp i checkouten. Cookie-parring og
+  forhåndsutfylt Vipps-nummer er for øvrig bekreftet å virke også i skarp checkout
+
 ### Gjenstår i fase 2
 
-- [ ] 2.3 Overgang fra Vipps MT til skarp Vipps (flyttet frem fra fase 3 — se planendring øverst)
+- [ ] 2.3-rest: første skarpe betaling (kr1-QR) når Nexi har provisjonert metodene → huk av
+  `live_payment` i admin, sett «Betalingsmetoder» tilbake til ønsket verdi
 - [ ] ~~Trefaseinstallasjon 400 V TN med elektriker~~ — UTSATT (2026-08-21), tas som egen
   aktivitet senere (CT på alle tre faser, kontaktorens fire poler)
 - Husk: kr1-produktet står fortsatt med testpris 30 kr/kWh fra benketestene — settes tilbake
-  (5 kr/kWh) eller justeres bevisst før skarp drift
+  (5 kr/kWh) eller justeres bevisst før skarp drift. Og adminpassord på Shelly-en (fase 3-krav)
+  bør settes nå som ekte penger er i spill
 
 ## Fase 3 (produksjon)
 
