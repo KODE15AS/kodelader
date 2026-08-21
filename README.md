@@ -9,7 +9,12 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 | Hva | URL | Tilgang |
 |---|---|---|
 | Brukerside (status/økter) | [cadify104raven.tail14de1b.ts.net/kodelader](https://cadify104raven.tail14de1b.ts.net/kodelader) | Offentlig (Tailscale Funnel) |
+| Start lading proto1 — test kr 1 | […/kodelader/start?enhet=proto1&produkt=kr1](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr1) | Offentlig (= QR-koden) |
+| Start lading proto1 — kr 100 | […/kodelader/start?enhet=proto1&produkt=kr100](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr100) | Offentlig (= QR-koden) |
 | Admin (enheter/økter/innstillinger/etablering) | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) | Kun tailnettet |
+| Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | [10.10.0.25](http://10.10.0.25) | Kun KODE15-wifi — dynamisk IP, sjekk ruterens klientliste hvis den ikke svarer |
+| Nexi Checkout-portal (API-nøkler, transaksjoner) | [portal.dibspayment.eu](https://portal.dibspayment.eu) | Innlogging |
+| GatewayAPI-dashbord (SMS, URL-hviteliste) | [gatewayapi.com](https://gatewayapi.com) | Innlogging |
 
 QR-kodene (kr 1 og kr 100 for proto1) ligger i [docs/qr/](docs/qr/). Eget domene erstatter Funnel-adressen i fase 3 — da må det nye domenet også hvitelistes hos GatewayAPI før `BASE_URL` byttes.
 

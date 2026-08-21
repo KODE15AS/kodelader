@@ -218,15 +218,32 @@ trengs noensinne for scriptvedlikehold; nye ladere provisjoneres med én knapp.
   serverstart avstemte første tick økten («maksbeløp nådd», korrekt kWh og beløp begrenset
   til reservasjonen)
 
+### Fase 2.2 — autonomitest på ekte maskinvare BESTÅTT (2026-08-21)
+
+Deploy på Raven + scriptinstallasjon på ekte Shelly gikk knirkefritt (én knapp fra admin,
+`device_script`-lampen grønn). Deretter full autonomitest med varmeovn som last:
+
+- [x] Kunde-økt startet (kr1-QR, Vipps MT), lading i gang → **nettverkskabelen til KODE15-wifi
+  trukket ut midt i økten**
+- [x] Enheten slo av kontaktoren HELT SELV ved grensen (hørbart relé). Målt 0,039 kWh mot
+  grense 0,033 — lite overskudd er ventet siden scriptet sjekker hvert 30. sekund; kunden
+  belastes uansett aldri mer enn reservasjonen
+- [x] Nett tilbake → enheten rekoblet etter ~2 min (halvåpen TCP måtte time ut først) →
+  serveren avstemte økten **6 sekunder** etter rekobling: capture HTTP 201 (100 øre),
+  «maksbeløp nådd», SMS 2 levert. Null manuell inngripen
+- Kjente/aksepterte funn: (1) mens enheten er uten nett viser brukersiden «aktiv» med siste
+  kjente måling — serveren kan ikke vite bedre, og lokal autonomi er sikkerhetsnettet;
+  (2) kunder på samme wifi som mistet nettet når naturligvis heller ikke statussiden;
+  (3) `kodelader_autostopp`-hendelsen går tapt om WS er nede i øyeblikket — avstemmingen
+  tar over ved rekobling (verifisert her)
+
 ### Gjenstår i fase 2
 
-- [ ] 2.1-rest: deploy på Raven + installer scriptet på ekte Shelly fra admin (én knapp)
-- [ ] 2.2 Autonomitest på ekte maskinvare: trekk nettverket midt i en økt — enheten skal slå
-  av selv ved grense (husk: scriptets sjekk går hvert 30. sekund), og økten skal avstemmes
-  ryddig når nettet er tilbake. Huk av `autonomy_tested` i admin etterpå
 - [ ] 2.3 Overgang fra Vipps MT til skarp Vipps (flyttet frem fra fase 3 — se planendring øverst)
 - [ ] ~~Trefaseinstallasjon 400 V TN med elektriker~~ — UTSATT (2026-08-21), tas som egen
   aktivitet senere (CT på alle tre faser, kontaktorens fire poler)
+- Husk: kr1-produktet står fortsatt med testpris 30 kr/kWh fra benketestene — settes tilbake
+  (5 kr/kWh) eller justeres bevisst før skarp drift
 
 ## Fase 3 (produksjon)
 
