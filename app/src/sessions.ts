@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { db, getSetting, logEvent, setCheck } from "./db.js";
 import { config } from "./config.js";
 import { createPayment, chargePayment, cancelPayment, getPayment } from "./nexi.js";
-import { setSwitch, readEnergyWh, cachedStatus, isOnline } from "./devicehub.js";
+import { setSwitch, readEnergyWh, cachedStatus, isOnline, writeAutonomyLimits } from "./devicehub.js";
 import { sendSms } from "./sms.js";
 
 export interface SessionRow {
@@ -76,6 +76,18 @@ export async function activateSession(paymentId: string, consumer: any): Promise
   const device = deviceRow(session.device_id);
   let startEnergy: number | null = null;
   try {
+    // Grensene MÅ stå i KVS før kontaktoren slås på — autonomi-scriptet på
+    // enheten leser dem i det bryteren går PÅ (lokalt sikkerhetsnett ved nettbrudd)
+    try {
+      await writeAutonomyLimits(device.shelly_id, {
+        maxKwh: session.max_amount_ore / session.price_per_kwh_ore,
+        maxMinutes: parseFloat(getSetting("max_session_hours")) * 60,
+        idleW: parseFloat(getSetting("idle_threshold_w")),
+        idleMin: parseFloat(getSetting("idle_minutes"))
+      });
+    } catch (err) {
+      logEvent("økt-feil", `KVS-grenser ikke skrevet til ${device.shelly_id} (økten styres kun fra serveren): ${(err as Error).message}`, session.id);
+    }
     await setSwitch(device.shelly_id, device.switch_id, true);
     startEnergy = await readEnergyWh(device.shelly_id);
   } catch (err) {

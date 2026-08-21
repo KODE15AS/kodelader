@@ -12,5 +12,6 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY --from=build /build/dist ./dist
 COPY --from=build /build/web-dist ./web-dist
+COPY --from=build /build/device ./device
 EXPOSE 8096 8097
 CMD ["node", "dist/index.js"]

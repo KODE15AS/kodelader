@@ -3,7 +3,7 @@ import { db, allSettings, setSetting, setCheck, logEvent } from "../db.js";
 import { config } from "../config.js";
 import { testKeys } from "../nexi.js";
 import { endSession, deviceOnline } from "../sessions.js";
-import { setSwitch, cachedStatus } from "../devicehub.js";
+import { setSwitch, cachedStatus, autonomyScriptStatus, installAutonomyScript } from "../devicehub.js";
 
 export const adminRouter = Router();
 
@@ -76,6 +76,32 @@ adminRouter.post("/api/checks/run-keys", async (_req, res) => {
 adminRouter.get("/api/events", (req, res) => {
   const limit = Math.min(parseInt(String(req.query.limit ?? "100"), 10), 500);
   res.json(db.prepare("SELECT * FROM events ORDER BY id DESC LIMIT ?").all(limit));
+});
+
+/** Autonomi-script: status og installasjon/oppdatering over WebSocket. */
+adminRouter.get("/api/devices/:id/script", async (req, res) => {
+  const d = db.prepare("SELECT * FROM devices WHERE id=?").get(req.params.id) as any;
+  if (!d) { res.status(404).json({ error: "Ukjent enhet" }); return; }
+  try {
+    res.json(await autonomyScriptStatus(d.shelly_id));
+  } catch (err) {
+    res.status(502).json({ error: (err as Error).message });
+  }
+});
+adminRouter.post("/api/devices/:id/script", async (req, res) => {
+  const d = db.prepare("SELECT * FROM devices WHERE id=?").get(req.params.id) as any;
+  if (!d) { res.status(404).json({ error: "Ukjent enhet" }); return; }
+  try {
+    const status = await installAutonomyScript(d.shelly_id);
+    logEvent("admin", `Autonomi-script installert/oppdatert på ${d.id} (script-id ${status.scriptId}, kjører: ${status.running ? "ja" : "nei"})`);
+    if (!d.shelly_id.includes("sim")) {
+      setCheck("device_script", status.running ? "green" : "red", `script-id ${status.scriptId} på ${d.shelly_id}`);
+    }
+    res.json(status);
+  } catch (err) {
+    logEvent("admin", `Scriptinstallasjon feilet på ${d.id}: ${(err as Error).message}`);
+    res.status(502).json({ error: (err as Error).message });
+  }
 });
 
 /** Manuell styring av enhet (testbenk!). */

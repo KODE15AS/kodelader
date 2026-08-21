@@ -133,6 +133,10 @@ function seed(): void {
 }
 seed();
 
+// Sjekkpunkter lagt til etter første seed (INSERT OR IGNORE = trygt på eksisterende databaser)
+db.prepare("INSERT OR IGNORE INTO checks(id,label,kind,phase,sort) VALUES('device_script','Autonomi-script installert og kjører på enheten','auto','sandkasse',75)").run();
+db.prepare("INSERT OR IGNORE INTO checks(id,label,kind,phase,sort) VALUES('autonomy_tested','Autonomitest: enheten slo av selv uten nett','manual','sandkasse',76)").run();
+
 export function logEvent(kind: string, message: string, ref?: string, data?: unknown): void {
   db.prepare("INSERT INTO events(ts,kind,ref,message,data) VALUES(?,?,?,?,?)").run(
     new Date().toISOString(), kind, ref ?? null, message, data === undefined ? null : JSON.stringify(data).slice(0, 4000)

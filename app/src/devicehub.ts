@@ -1,5 +1,8 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "node:http";
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { db, logEvent, setCheck } from "./db.js";
 
 /**
@@ -60,6 +63,17 @@ export function attachDeviceHub(server: Server, paths: string[]): void {
         if (msg.error) p.reject(new Error(`RPC-feil: ${JSON.stringify(msg.error)}`));
         else p.resolve(msg.result);
         return;
+      }
+
+      // Hendelser fra enheten — bl.a. autonomi-scriptets "kodelader_autostopp"
+      // (Shelly.emitEvent) når enheten slår av lokalt fordi en grense er nådd
+      if (msg.method === "NotifyEvent") {
+        for (const ev of msg.params?.events ?? []) {
+          if (ev?.event === "kodelader_autostopp") {
+            logEvent("enhet", `Lokal autonomi slo av ${shellyId}: ${ev.data?.reason ?? "ukjent årsak"}`, undefined, ev.data);
+            autonomyStopHandler?.(shellyId, String(ev.data?.reason ?? "grense nådd"));
+          }
+        }
       }
 
       // Statusvarsler fra enheten
@@ -125,4 +139,79 @@ export async function readEnergyWh(shellyId: string): Promise<number> {
   const cached = cachedStatus(shellyId).energyWh;
   if (cached === null) throw new Error(`Ingen energimåling tilgjengelig for ${shellyId}`);
   return cached;
+}
+
+// ---- Lokal autonomi: KVS-grenser og scriptinstallasjon over WebSocket ----
+
+let autonomyStopHandler: ((shellyId: string, reason: string) => void) | null = null;
+
+/** Registrer håndtering av enhetens autostopp-hendelse (settes fra index.ts
+ *  for å unngå sirkulær import mot sessions.ts). */
+export function onAutonomyStop(fn: (shellyId: string, reason: string) => void): void {
+  autonomyStopHandler = fn;
+}
+
+export interface AutonomyLimits {
+  maxKwh: number;
+  maxMinutes: number;
+  idleW: number;
+  idleMin: number;
+}
+
+/** Skriver øktens grenser til enhetens KVS. MÅ kalles før kontaktoren slås på —
+ *  autonomi-scriptet leser grensene i det bryteren går PÅ. */
+export async function writeAutonomyLimits(shellyId: string, limits: AutonomyLimits): Promise<void> {
+  const entries: [string, number][] = [
+    ["kodelader.max_kwh", Math.round(limits.maxKwh * 1000) / 1000],
+    ["kodelader.max_minutes", limits.maxMinutes],
+    ["kodelader.idle_w", limits.idleW],
+    ["kodelader.idle_min", limits.idleMin]
+  ];
+  for (const [key, value] of entries) {
+    await rpc(shellyId, "KVS.Set", { key, value: String(value) });
+  }
+}
+
+const SCRIPT_NAME = "kodelader-session";
+const here = dirname(fileURLToPath(import.meta.url));
+// dist/../device fungerer både lokalt (app/device) og i containeren (/app/device)
+const scriptPath = resolve(here, "../device/kodelader-session.js");
+
+export interface ScriptStatus {
+  installed: boolean;
+  running: boolean;
+  scriptId: number | null;
+}
+
+/** Sjekker om autonomi-scriptet finnes og kjører på enheten. */
+export async function autonomyScriptStatus(shellyId: string): Promise<ScriptStatus> {
+  const list = await rpc(shellyId, "Script.List");
+  const script = (list?.scripts ?? []).find((s: any) => s.name === SCRIPT_NAME);
+  if (!script) return { installed: false, running: false, scriptId: null };
+  return { installed: true, running: !!script.running, scriptId: script.id };
+}
+
+/** Installerer/oppdaterer autonomi-scriptet på enheten over WebSocket-forbindelsen
+ *  (Script.PutCode i biter) og starter det med autostart ved boot. */
+export async function installAutonomyScript(shellyId: string): Promise<ScriptStatus> {
+  const code = readFileSync(scriptPath, "utf8");
+  const existing = await autonomyScriptStatus(shellyId);
+
+  let scriptId = existing.scriptId;
+  if (scriptId === null) {
+    const created = await rpc(shellyId, "Script.Create", { name: SCRIPT_NAME });
+    scriptId = created.id;
+  } else if (existing.running) {
+    await rpc(shellyId, "Script.Stop", { id: scriptId });
+  }
+
+  const CHUNK = 1024;
+  for (let i = 0; i < code.length; i += CHUNK) {
+    await rpc(shellyId, "Script.PutCode", { id: scriptId, code: code.slice(i, i + CHUNK), append: i > 0 });
+  }
+
+  await rpc(shellyId, "Script.SetConfig", { id: scriptId, config: { enable: true } }); // autostart ved boot
+  await rpc(shellyId, "Script.Start", { id: scriptId });
+  const status = await rpc(shellyId, "Script.GetStatus", { id: scriptId });
+  return { installed: true, running: !!status?.running, scriptId };
 }

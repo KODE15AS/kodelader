@@ -9,6 +9,8 @@
   let events: any[] = [];
   let saveMsg = "";
   let keyTestMsg = "";
+  let scriptStatus: Record<string, any> = {};
+  let scriptMsg: Record<string, string> = {};
 
   async function get(path: string) {
     const res = await fetch(path);
@@ -49,6 +51,25 @@
     checks = await get("/api/checks");
   }
 
+  async function loadScriptStatus() {
+    if (!overview) return;
+    for (const d of overview.devices) {
+      if (!d.online) { scriptStatus[d.id] = null; continue; }
+      const res = await fetch(`/api/devices/${d.id}/script`);
+      scriptStatus[d.id] = res.ok ? await res.json() : { error: (await res.json()).error };
+    }
+    scriptStatus = scriptStatus;
+  }
+
+  async function installScript(deviceId: string) {
+    scriptMsg[deviceId] = "Installerer …";
+    const res = await fetch(`/api/devices/${deviceId}/script`, { method: "POST" });
+    const r = await res.json();
+    scriptMsg[deviceId] = res.ok ? (r.running ? "Installert og kjører ✓" : "Installert, men kjører IKKE") : `Feilet: ${r.error}`;
+    scriptStatus[deviceId] = res.ok ? r : scriptStatus[deviceId];
+    setTimeout(() => { scriptMsg[deviceId] = ""; }, 6000);
+  }
+
   async function manualSwitch(deviceId: string, on: boolean) {
     await fetch(`/api/devices/${deviceId}/switch`, {
       method: "POST",
@@ -73,11 +94,11 @@
   function setTab(t: string) {
     tab = t;
     settingsData = null;
-    refresh();
+    refresh().then(() => { if (t === "enheter") loadScriptStatus(); });
   }
 
   onMount(() => {
-    refresh();
+    refresh().then(loadScriptStatus);
     const t = setInterval(refresh, 5000);
     return () => clearInterval(t);
   });
@@ -119,6 +140,23 @@
         <p>
           <button class="ghost" on:click={() => manualSwitch(d.id, true)} disabled={!d.online}>Slå PÅ (test)</button>
           <button class="ghost" on:click={() => manualSwitch(d.id, false)} disabled={!d.online}>Slå AV</button>
+        </p>
+        <p class="muted">
+          {#if scriptStatus[d.id] === undefined}
+            Autonomi-script: sjekker …
+          {:else if scriptStatus[d.id] === null}
+            Autonomi-script: <span class="lamp grey"></span>enheten er frakoblet
+          {:else if scriptStatus[d.id].error}
+            Autonomi-script: <span class="lamp red"></span>{scriptStatus[d.id].error}
+          {:else if scriptStatus[d.id].running}
+            Autonomi-script: <span class="lamp green"></span>installert og kjører
+          {:else if scriptStatus[d.id].installed}
+            Autonomi-script: <span class="lamp red"></span>installert, men kjører IKKE
+          {:else}
+            Autonomi-script: <span class="lamp grey"></span>ikke installert
+          {/if}
+          <button class="ghost" on:click={() => installScript(d.id)} disabled={!d.online}>Installer/oppdater script</button>
+          {scriptMsg[d.id] ?? ""}
         </p>
       </div>
     {/each}

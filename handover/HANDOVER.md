@@ -9,6 +9,7 @@ Daterte overganger:
 - **2026-08-12 — Maskinvare ankommet, arkitekturendring MQTT → WebSocket** (se [2026-08-12-websocket-arkitektur.md](2026-08-12-websocket-arkitektur.md))
 - **2026-08-12 — Fase 1 bygget og verifisert lokalt mot Nexi-sandkassen** (gjenstår: deploy på Raven + ekte betaling gjennom checkout)
 - **2026-08-21 — Sandkasse-verifisering komplett.** Hele kundeflyten (QR → Vipps → lading → auto-/manuell avslutning → capture → SMS med kvittering) verifisert ende-til-ende på ekte maskinvare, inkludert kun-Vipps-checkout, cookie-parring og forhåndsutfylt nummer i Vipps-steget. Neste: trefaseinstallasjon med elektriker (fase 2) og produksjonssetting (fase 3)
+- **2026-08-21 — Fase 2-chat startet, planendring:** Trefaseinstallasjon 400 V med elektriker er UTSATT (tas senere, blokkerer ikke). Ny rekkefølge i fase 2: (2.1) autonomi-script, (2.2) autonomitest, (2.3) overgang fra Vipps MT til skarp Vipps — skarp Vipps flyttes altså frem fra fase 3 til fase 2
 
 ---
 
@@ -72,7 +73,7 @@ Mål: Hele kjeden fungerer ende-til-ende i Nexi-sandkassen med en **simulert** l
 - [x] Simulert Shelly (`device/simulator.mjs`) som kobler seg på `/ws` og oppfører seg som enheten (11 kW lading, «bil full»-modus for å teste ferdig-deteksjon)
 - [x] Øktslutt-håndtering: ferdig-deteksjon, delvis capture (kansellering hvis 0 kWh), SMS 2 med kvitteringslenke
 - [x] Web: brukerside (status + «Avslutt lading» + historikk), kvitteringsside og vilkårsside (30 dagers levetid, SQLite). *Beløpsvalg-siden utgikk — QR-koden bestemmer maksbeløpet direkte*
-- [x] Utkast til Shelly-script (`device/kodelader-session.js`) — lokal autonomi (maks kWh/tid, ferdig-deteksjon) via KVS-grenser, testes i fase 2
+- [x] Utkast til Shelly-script — lokal autonomi (maks kWh/tid, ferdig-deteksjon) via KVS-grenser; omskrevet og flyttet til `app/device/kodelader-session.js` i fase 2.1
 - [x] QR-koder generert (`app/scripts/generate-qr.mjs` → `docs/qr/`) for proto1 kr1/kr100 + simulator
 - [x] Deploy på Raven (2026-08-12): klonet til `~/dev/kodelader`, `docker compose up -d --build`, Funnel-rute `/kodelader` → 8096 lagt til uten å røre Masskette-ruta på `/`. Admin nås på tailnettet: `http://cadify104raven.tail14de1b.ts.net:8097`. `.env` kopiert manuelt (aldri i repo). **Lærdom:** Nexi krever webhook-autorisasjon på 8–32 alfanumeriske tegn — ellers HTTP 400 på create payment
 - [x] **Ekte Shelly tilkoblet gjennom Funnel:** `shellypro3em-1c8f57034ae4` koblet seg på `/kodelader/ws` umiddelbart etter deploy og leverer målerdata (0 W — CT-er monteres i fase 2). Outbound WebSocket-arkitekturen er dermed verifisert ende-til-ende
@@ -191,10 +192,41 @@ Tre friksjonsreduksjoner bygget og verifisert ende-til-ende i sandkassen:
   conditions» i checkouten for gjengangere — vilkårene er allerede akseptert ved første kjøp.
   Må vurderes juridisk/mot Nexi-oppsettet før det aktiveres
 
+### Fase 2.1 — lokal autonomi bygget og verifisert med simulator (2026-08-21)
+
+Scriptet flyttet fra `device/` til `app/device/kodelader-session.js` slik at det følger med i
+Docker-imaget — appen kan da installere/oppdatere det på enheten **over den eksisterende
+WebSocket-forbindelsen** (`Script.PutCode` i biter). Ingen nettverkstilgang til KODE15-wifi
+trengs noensinne for scriptvedlikehold; nye ladere provisjoneres med én knapp.
+
+- [x] Script omskrevet fra utkastet: bruker `sys.uptime` i stedet for `Date.now()` (monoton —
+  immun mot NTP-klokkehopp etter strøm-/nettbrudd), gjenopptar overvåking hvis enheten/scriptet
+  starter på nytt mens kontaktoren står på, håndterer begge KVS-svarformater (objektform < 1.4,
+  arrayform >= 1.4), og melder `kodelader_autostopp` via `Shelly.emitEvent` når det slår av
+- [x] Serveren skriver øktens grenser til enhetens KVS **før** kontaktoren slås på
+  (`max_kwh` = maksbeløp/pris, makstid, ferdig-terskel/-varighet) — `activateSession`
+- [x] Autostopp-hendelsen fanges av serveren (NotifyEvent over WS): økten avsluttes umiddelbart
+  og ryddig med capture og SMS, med årsak «lokal autonomi: …»
+- [x] Admin/Enheter: lampe for scriptstatus (installert/kjører) + knapp «Installer/oppdater
+  script» per enhet. Nye sjekkpunkter i Etablering: `device_script` (auto) og `autonomy_tested`
+  (manuell, hukes av etter benketesten)
+- [x] Simulatoren utvidet med KVS/Script-RPC og etterligner scriptets autonomi (slår av ved
+  `max_kwh`, sender `kodelader_autostopp`) — pluss fiks: energitikkeren dupliserte seg ved
+  hver rekobling
+- [x] Verifisert lokalt, begge scenarier: (a) server oppe → autostopp-hendelse → øyeblikkelig
+  ryddig avslutning; (b) server DREPT midt i økten → enheten slo av selv på grensen → ved
+  serverstart avstemte første tick økten («maksbeløp nådd», korrekt kWh og beløp begrenset
+  til reservasjonen)
+
 ### Gjenstår i fase 2
-- [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)
-- [ ] Shelly-script installert: lokal autonomi med KVS-grenser
-- [ ] Autonomitest: trekk nettverket midt i en økt — enheten skal slå av selv ved grense
+
+- [ ] 2.1-rest: deploy på Raven + installer scriptet på ekte Shelly fra admin (én knapp)
+- [ ] 2.2 Autonomitest på ekte maskinvare: trekk nettverket midt i en økt — enheten skal slå
+  av selv ved grense (husk: scriptets sjekk går hvert 30. sekund), og økten skal avstemmes
+  ryddig når nettet er tilbake. Huk av `autonomy_tested` i admin etterpå
+- [ ] 2.3 Overgang fra Vipps MT til skarp Vipps (flyttet frem fra fase 3 — se planendring øverst)
+- [ ] ~~Trefaseinstallasjon 400 V TN med elektriker~~ — UTSATT (2026-08-21), tas som egen
+  aktivitet senere (CT på alle tre faser, kontaktorens fire poler)
 
 ## Fase 3 (produksjon)
 

@@ -4,11 +4,11 @@ import { existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
-import { logEvent } from "./db.js";
-import { attachDeviceHub } from "./devicehub.js";
+import { db, logEvent } from "./db.js";
+import { attachDeviceHub, onAutonomyStop } from "./devicehub.js";
 import { publicRouter } from "./routes/public.js";
 import { adminRouter } from "./routes/admin.js";
-import { tick } from "./sessions.js";
+import { tick, endSession } from "./sessions.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webDist = [resolve(here, "../web-dist"), resolve(here, "../../web-dist")].find(existsSync);
@@ -32,6 +32,17 @@ if (webDist) {
 const pubServer = createServer(pub);
 // Shelly outbound WS — både med og uten /kodelader-prefiks, avhengig av Funnel-oppførsel
 attachDeviceHub(pubServer, ["/ws", "/kodelader/ws"]);
+
+// Enheten slo av lokalt (autonomi-script, f.eks. under nettbrudd som er over):
+// avslutt økten ryddig med capture og SMS
+onAutonomyStop((shellyId, reason) => {
+  const device = db.prepare("SELECT id FROM devices WHERE shelly_id=?").get(shellyId) as { id: string } | undefined;
+  if (!device) return;
+  const session = db.prepare("SELECT id FROM sessions WHERE device_id=? AND status='active'").get(device.id) as { id: string } | undefined;
+  if (!session) return;
+  endSession(session.id, `lokal autonomi: ${reason}`).catch((err) =>
+    logEvent("økt-feil", `Avslutning etter lokal autonomi feilet: ${(err as Error).message}`, session.id));
+});
 pubServer.listen(config.publicPort, () => {
   logEvent("app", `Offentlig app lytter på :${config.publicPort} (${config.baseUrl})`);
 });
