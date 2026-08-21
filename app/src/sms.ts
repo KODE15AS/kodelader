@@ -2,10 +2,12 @@ import { config } from "./config.js";
 import { logEvent, setCheck } from "./db.js";
 
 /**
- * SMS via GatewayAPI (EU-plattformen, gatewayapi.eu). Uten konfigurert token
- * logges meldingen bare, slik at resten av flyten kan testes uten konto.
+ * SMS via GatewayAPI. Uten konfigurert token logges meldingen bare,
+ * slik at resten av flyten kan testes uten konto.
  *
- * NB: URL-er i meldingstekster (f.eks. kvitteringslenken) må være hvitelistet
+ * NB1: Kontoen ligger på standardplattformen (gatewayapi.com) — tokens er
+ * plattformspesifikke og fungerer IKKE mot EU-plattformen (gatewayapi.eu).
+ * NB2: URL-er i meldingstekster (f.eks. kvitteringslenken) må være hvitelistet
  * hos GatewayAPI på forhånd (Dashboard → URL Whitelist), ellers avvises sendingen.
  */
 export async function sendSms(to: string, message: string): Promise<boolean> {
@@ -15,7 +17,7 @@ export async function sendSms(to: string, message: string): Promise<boolean> {
   }
   const msisdn = parseInt(to.replace(/^\+/, ""), 10);
   try {
-    const res = await fetch("https://gatewayapi.eu/rest/mtsms", {
+    const res = await fetch("https://gatewayapi.com/rest/mtsms", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
