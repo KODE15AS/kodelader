@@ -148,6 +148,22 @@ godkjenning i MT-appen → lading → auto-avslutning ved maksbeløp → full ca
   vårt webhook med avsenderens nummer, vi matcher mot aktiv økt. To trykk, null tasting,
   verifisert nummer, helt uten Nets/Vipps. Krever ett nytt endepunkt i appen
 
+### SMS-leverandør byttet til GatewayAPI (2026-08-21)
+
+Sveve Grunnpakke ble etablert og toveis-SMS testet manuelt, men programmatisk sending krever
+API-utvidelsen (+150 kr/mnd = ca. 3 500 kr/år totalt). Siden SMS er valgfri opt-in etter
+Vipps-funnet, blir volumet lavt — **GatewayAPI** (EU-plattformen, gatewayapi.eu) valgt i stedet:
+ingen månedsavgift, betaling per SMS (~0,5–0,9 kr).
+
+- `app/src/sms.ts` erstatter `sveve.ts` — `POST /rest/mtsms` med token-autentisering,
+  avsender «KODE15» (maks 11 tegn). Konfig: `GATEWAYAPI_TOKEN` + `SMS_SENDER` i `.env`
+- **VIKTIG: URL-er i SMS-tekster må hvitelistes** i GatewayAPI-dashbordet (URL Whitelist)
+  før sending — gjelder kvitteringslenken. Hviteliste Funnel-domenet nå, eget domene i fase 3
+- Ettersendings-fiks (2026-08-20): registreres nummeret etter øktslutt, sendes kvitterings-SMS-en
+  i etterkant; statussiden viser «ferdig»-kort med SMS-felt og kvitteringslenke
+- Sveve-kontoen beholdes inntil videre for manuell utsendelse/toveis (vurderes ved neste faktura);
+  kodeord-muligheten (se over) er fortsatt aktuell som fremtidig finpuss
+
 ### Gjenstår i fase 2
 - [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)
 - [ ] Shelly-script installert: lokal autonomi med KVS-grenser

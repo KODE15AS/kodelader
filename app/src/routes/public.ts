@@ -3,7 +3,7 @@ import { db, logEvent, setCheck, getSetting } from "../db.js";
 import { config } from "../config.js";
 import { startSession, activateSession, endSession, sendFinishSms, findSession, maskPhone, deviceOnline } from "../sessions.js";
 import { cachedStatus } from "../devicehub.js";
-import { sendSms } from "../sveve.js";
+import { sendSms } from "../sms.js";
 
 export const publicRouter = Router();
 

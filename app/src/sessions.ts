@@ -3,7 +3,7 @@ import { db, getSetting, logEvent, setCheck } from "./db.js";
 import { config } from "./config.js";
 import { createPayment, chargePayment, cancelPayment, getPayment } from "./nexi.js";
 import { setSwitch, readEnergyWh, cachedStatus, isOnline } from "./devicehub.js";
-import { sendSms } from "./sveve.js";
+import { sendSms } from "./sms.js";
 
 export interface SessionRow {
   id: string; device_id: string; product_id: string; payment_id: string | null;

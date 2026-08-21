@@ -15,10 +15,9 @@ export const config = {
   publicPort: parseInt(req("PUBLIC_PORT", "8096"), 10),
   adminPort: parseInt(req("ADMIN_PORT", "8097"), 10),
   dbPath: req("DB_PATH", "./data/kodelader.sqlite"),
-  sveve: {
-    user: process.env.SVEVE_USER ?? "",
-    password: process.env.SVEVE_PASSWORD ?? "",
-    sender: process.env.SVEVE_SENDER ?? "KODE15"
+  sms: {
+    token: process.env.GATEWAYAPI_TOKEN ?? "",
+    sender: process.env.SMS_SENDER ?? "KODE15" // maks 11 tegn, ingen spesialtegn
   },
   isLive(): boolean {
     return !this.nexiApiBase.includes("test.");

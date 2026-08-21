@@ -20,7 +20,7 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
    (SMS 1: "ladeøkt startet")                     (5. styrer kontaktor, måler kWh)
         |                                                     |
         v                                                     v
-[ Sveve SMS-API ]                                     [ Ladeuttak 400V / 16A ]
+[ GatewayAPI SMS ]                                    [ Ladeuttak 400V / 16A ]
 ```
 
 Shelly-enheten holder selv en utgående WebSocket-forbindelse (`wss://`) åpen mot appen — ingen brannmuråpninger eller broker nødvendig. Ved øktslutt (bilen ferdig, maks kWh/tid nådd, eller manuelt stopp) melder Shelly-scriptet forbrukt energi over samme forbindelse. Appen trekker `min(maksbeløp, kWh × pris)` via `POST /v1/payments/{paymentId}/charges`, frigjør resten av reservasjonen, og sender SMS med kvitteringslenke (gyldig i 30 dager).
@@ -29,7 +29,7 @@ Shelly-enheten holder selv en utgående WebSocket-forbindelse (`wss://`) åpen m
 
 | Lag | Komponent | Ansvar |
 |---|---|---|
-| **Applikasjon** | Node.js/TypeScript i Docker på Raven (port 8096) | QR-landing, betalingsflyt mot Nexi, webhook-mottak, WebSocket-endepunkt for enhetene, sesjoner (SQLite), SMS via Sveve |
+| **Applikasjon** | Node.js/TypeScript i Docker på Raven (port 8096) | QR-landing, betalingsflyt mot Nexi, webhook-mottak, WebSocket-endepunkt for enhetene, sesjoner (SQLite), SMS via GatewayAPI |
 | **Styring** | Shelly Pro 3EM 120A V2 + Switch Add-on (Shelly-script) | kWh-måling, kontaktorstyring, lokal autonomi (slår av selv ved grense — også uten nett) |
 | **Effekt** | CHINT NCH8 kontaktor (25A, 4-pol) | Fysisk inn-/utkobling av trefasestrøm (400V TN, maks 16A) |
 
@@ -47,7 +47,8 @@ Betalingslaget bygger på **Nets Easy Payment API (Nexi Checkout)** med avtalene
 
 - API-nøkler (Secret Key / Checkout Key for test og live) hentes i [Checkout-portalen](https://portal.dibspayment.eu) under *Virksomhet → Integrasjon*
 - Testmiljø: `https://test.api.dibspayment.eu` — produksjon: `https://api.dibspayment.eu`
-- Webhooken `payment.checkout.completed` er triggeren som aktiverer laderen; kundens mobilnummer (fra Vipps-profilen) følger med og brukes til SMS-varsling
+- Webhooken `payment.checkout.completed` er triggeren som aktiverer laderen
+- **Vipps deler ikke kundedata** (mobilnummer) gjennom checkouten (verifisert aug. 2026) — SMS-varsling er derfor valgfri: kunden kan oppgi nummer på statussiden under eller etter økten
 - Paylink/One-Page-Shop benyttes ikke (krever tilleggsavtale, og One-Page-Shop mangler Vipps) — appen videresender direkte til hosted checkout
 
 **Vipps i testmiljøet** aktiveres ikke automatisk: Nexi-support (`ecom-no@nexigroup.com`) må skru det på per test-Merchant-ID, og testing gjøres med Vipps MT-appen og dummy-bruker. Full logg: [docs/betalingsavtale-nets/README.md](docs/betalingsavtale-nets/README.md) og «Etablering»-fanen i admin.

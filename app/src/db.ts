@@ -117,7 +117,7 @@ function seed(): void {
     ins.run("webhook_received", "Webhook mottatt og verifisert", "auto", "sandkasse", 30);
     ins.run("phone_present", "Mobilnummer til stede i betalingsdata", "auto", "sandkasse", 40);
     ins.run("charge_done", "Delvis capture gjennomført", "auto", "sandkasse", 50);
-    ins.run("sms_sent", "SMS levert via Sveve", "auto", "sandkasse", 60);
+    ins.run("sms_sent", "SMS levert via GatewayAPI", "auto", "sandkasse", 60);
     ins.run("device_ws", "Ekte Shelly tilkoblet via WebSocket", "auto", "sandkasse", 70);
     // Sandkasse — manuelle (bekreftes i admin etter kontroll i Nexi-portalen)
     ins.run("reservation_released", "Rest-reservasjon frigitt (sjekket i portal)", "manual", "sandkasse", 80);

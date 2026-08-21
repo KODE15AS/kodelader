@@ -191,7 +191,7 @@
     <div class="card">
       <h2><span class="num">04</span>Etablering — Vipps/Nexi</h2>
       {#if overview}
-        <p class="muted">API: {overview.apiBase} · Base-URL: {overview.baseUrl} · SMS: {overview.sveveConfigured ? "konfigurert" : "ikke konfigurert"}</p>
+        <p class="muted">API: {overview.apiBase} · Base-URL: {overview.baseUrl} · SMS: {overview.smsConfigured ? "konfigurert" : "ikke konfigurert"}</p>
       {/if}
       <p><button class="ghost" on:click={runKeyTest}>Test API-nøkler nå</button> <span class="muted">{keyTestMsg}</span></p>
       <h3>Sandkasse</h3>

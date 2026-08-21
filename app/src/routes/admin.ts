@@ -22,7 +22,7 @@ adminRouter.get("/api/overview", (_req, res) => {
     env: config.isLive() ? "SKARP" : "SANDKASSE",
     apiBase: config.nexiApiBase,
     baseUrl: config.baseUrl,
-    sveveConfigured: !!config.sveve.user,
+    smsConfigured: !!config.sms.token,
     devices
   });
 });
