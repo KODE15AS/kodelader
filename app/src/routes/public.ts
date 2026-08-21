@@ -7,12 +7,28 @@ import { sendSms } from "../sms.js";
 
 export const publicRouter = Router();
 
+/** Mobilnummer husket i nettleseren (cookie satt ved SMS-registrering). */
+const PHONE_COOKIE = "kl_tlf";
+const cookieOpts = {
+  maxAge: 365 * 24 * 3600 * 1000,
+  httpOnly: true,
+  secure: config.baseUrl.startsWith("https"),
+  sameSite: "lax" as const,
+  path: "/"
+};
+function rememberedPhone(req: { headers: { cookie?: string } }): string | null {
+  const m = new RegExp(`(?:^|;\\s*)${PHONE_COOKIE}=([^;]+)`).exec(String(req.headers.cookie ?? ""));
+  if (!m) return null;
+  const p = decodeURIComponent(m[1]);
+  return /^\+47[49]\d{7}$/.test(p) ? p : null;
+}
+
 /** QR-landing: oppretter betaling og videresender rett til Nexi hosted checkout. */
 publicRouter.get("/start", async (req, res) => {
   const deviceId = String(req.query.enhet ?? "");
   const productId = String(req.query.produkt ?? "");
   try {
-    const checkoutUrl = await startSession(deviceId, productId);
+    const checkoutUrl = await startSession(deviceId, productId, rememberedPhone(req));
     res.redirect(302, checkoutUrl);
   } catch (err) {
     logEvent("start-feil", `${deviceId}/${productId}: ${(err as Error).message}`);
@@ -80,6 +96,7 @@ publicRouter.post("/api/session/:id/phone", async (req, res) => {
   if (!m) { res.status(400).json({ error: "Oppgi et gyldig norsk mobilnummer" }); return; }
   const phone = `+47${m[1]}`;
   db.prepare("UPDATE sessions SET phone=? WHERE id=?").run(phone, session.id);
+  res.cookie(PHONE_COOKIE, phone, cookieOpts); // husk nummeret i nettleseren for fremtidige økter
   logEvent("økt", `Mobilnummer registrert for SMS-varsling på økt ${session.id} (${maskPhone(phone)})`, session.id);
   if (session.status === "active" && !session.sms1_sent) {
     const ok = await sendSms(phone, "Elbil ladeøkt startet hos KODE15 as, og du får ny beskjed når ladingen er ferdig.");
@@ -88,6 +105,12 @@ publicRouter.post("/api/session/:id/phone", async (req, res) => {
     // Økten rakk å bli ferdig før nummeret ble registrert — ettersend kvitterings-SMS-en
     await sendFinishSms(session.id);
   }
+  res.json({ ok: true });
+});
+
+/** «Glem meg»: fjerner det huskede nummeret fra denne nettleseren (gjelder nye økter). */
+publicRouter.post("/api/telefon/glem", (_req, res) => {
+  res.clearCookie(PHONE_COOKIE, { path: "/" });
   res.json({ ok: true });
 });
 

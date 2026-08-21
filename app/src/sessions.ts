@@ -26,8 +26,10 @@ function deviceRow(deviceId: string): { id: string; shelly_id: string; name: str
   return d;
 }
 
-/** Steg 1: QR skannet — opprett sesjon + Nexi-reservasjon, returner checkout-URL. */
-export async function startSession(deviceId: string, productId: string): Promise<string> {
+/** Steg 1: QR skannet — opprett sesjon + Nexi-reservasjon, returner checkout-URL.
+ *  `rememberedPhone` kommer fra nettleser-cookien (satt ved tidligere SMS-registrering)
+ *  og kobles på økten fra start — da går SMS-varslene ut uten at kunden taster noe. */
+export async function startSession(deviceId: string, productId: string, rememberedPhone?: string | null): Promise<string> {
   const device = deviceRow(deviceId);
   const product = db.prepare("SELECT * FROM products WHERE id=? AND active=1").get(productId) as any;
   if (!product) throw new Error(`Ukjent produkt: ${productId}`);
@@ -36,13 +38,14 @@ export async function startSession(deviceId: string, productId: string): Promise
   if (active) throw new Error("Laderen er opptatt — en økt pågår allerede");
 
   const id = randomBytes(8).toString("hex");
-  db.prepare(`INSERT INTO sessions(id,device_id,product_id,status,max_amount_ore,price_per_kwh_ore,created_at)
-              VALUES(?,?,?,?,?,?,?)`)
-    .run(id, deviceId, productId, "pending", product.max_amount_ore, product.price_per_kwh_ore, new Date().toISOString());
+  db.prepare(`INSERT INTO sessions(id,device_id,product_id,status,phone,max_amount_ore,price_per_kwh_ore,created_at)
+              VALUES(?,?,?,?,?,?,?,?)`)
+    .run(id, deviceId, productId, "pending", rememberedPhone ?? null, product.max_amount_ore, product.price_per_kwh_ore, new Date().toISOString());
 
-  const payment = await createPayment(id, product.max_amount_ore, `Elbillading ${device.name} (${product.label})`);
+  const payment = await createPayment(id, product.max_amount_ore, `Elbillading ${device.name} (${product.label})`, rememberedPhone);
   db.prepare("UPDATE sessions SET payment_id=? WHERE id=?").run(payment.paymentId, id);
-  logEvent("økt", `Økt ${id} opprettet på ${deviceId}/${productId}, reservasjon ${product.max_amount_ore} øre`, id);
+  logEvent("økt", `Økt ${id} opprettet på ${deviceId}/${productId}, reservasjon ${product.max_amount_ore} øre` +
+    (rememberedPhone ? ` — nummer husket fra tidligere økt (${maskPhone(rememberedPhone)})` : ""), id);
   return payment.hostedPaymentPageUrl;
 }
 
@@ -55,13 +58,16 @@ export async function activateSession(paymentId: string, consumer: any): Promise
   }
   if (session.status !== "pending") return; // idempotent — webhooks kan komme flere ganger
 
-  // Mobilnummer fra webhook-data, ellers fra payment-oppslag
+  // Mobilnummer: webhook-data, ellers payment-oppslag, ellers husket fra cookie ved øktstart
   let phone = phoneFrom(consumer);
   if (!phone) {
     try { phone = phoneFrom((await getPayment(paymentId))?.consumer); } catch { /* ok */ }
   }
   if (phone) setCheck("phone_present", "green", maskPhone(phone));
-  else if (getSetting("skip_checkout_form") === "1") {
+  else if (session.phone) {
+    phone = session.phone;
+    setCheck("phone_present", "green", `${maskPhone(phone)} — husket fra tidligere økt (cookie)`);
+  } else if (getSetting("skip_checkout_form") === "1") {
     setCheck("phone_present", "grey", "Forventet tomt: checkout-skjema er skjult — SMS registreres valgfritt på statussiden");
   } else {
     setCheck("phone_present", "red", "Mangler i både webhook og payment-oppslag");

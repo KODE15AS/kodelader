@@ -24,8 +24,10 @@ export interface CreatedPayment {
   hostedPaymentPageUrl: string;
 }
 
-/** Oppretter betaling (reservasjon av maksbeløp) med hosted checkout og webhook-abonnement. */
-export async function createPayment(sessionId: string, amountOre: number, label: string): Promise<CreatedPayment> {
+/** Oppretter betaling (reservasjon av maksbeløp) med hosted checkout og webhook-abonnement.
+ *  Kjent mobilnummer (husket fra cookie) sendes med som kundedata slik at checkouten
+ *  har det tilgjengelig — bl.a. for Vipps-steget. */
+export async function createPayment(sessionId: string, amountOre: number, label: string, phone?: string | null): Promise<CreatedPayment> {
   const item = {
     reference: "lading",
     name: label,
@@ -52,7 +54,11 @@ export async function createPayment(sessionId: string, amountOre: number, label:
       charge: false,
       // true = ikke noe navn/adresse-skjema i checkout — kunden går rett til betalingsvalg.
       // Styres fra admin (Innstillinger) i tilfelle mobilnummeret uteblir fra betalingsdataene.
-      merchantHandlesConsumerData: getSetting("skip_checkout_form") === "1"
+      merchantHandlesConsumerData: getSetting("skip_checkout_form") === "1",
+      // consumer leses kun av Nexi når merchantHandlesConsumerData er true
+      ...(phone && getSetting("skip_checkout_form") === "1" && /^\+47\d{8}$/.test(phone)
+        ? { consumer: { phoneNumber: { prefix: "+47", number: phone.slice(3) } } }
+        : {})
     },
     // «Kun Vipps» skjuler kortskjemaet helt (rekkefølge/forvalg ved flere metoder styres av Nexi).
     // Metoder som ikke er nevnt i listen blir implisitt deaktivert.

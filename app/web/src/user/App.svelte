@@ -34,6 +34,11 @@
     setTimeout(async () => { await refresh(); stopping = false; }, 1500);
   }
 
+  async function forgetPhone() {
+    await fetch(`${base}/api/telefon/glem`, { method: "POST" });
+    phoneMsg = "Nummeret er glemt på denne enheten (gjelder nye økter)";
+  }
+
   async function savePhone() {
     const sessionId = state?.active?.id ?? finished?.id;
     if (!sessionId || !phoneInput.trim()) return;
@@ -115,8 +120,12 @@
             <button class="ghost" on:click={savePhone}>Lagre</button>
           </div>
           <p class="muted">{phoneMsg}</p>
-        {:else if phoneMsg}
-          <p class="muted">{phoneMsg}</p>
+        {:else}
+          {#if state.active.phone !== "—"}
+            <p class="muted">SMS-varsel sendes til {state.active.phone} —
+              <a href="/" on:click|preventDefault={forgetPhone}>glem nummeret på denne enheten</a></p>
+          {/if}
+          {#if phoneMsg}<p class="muted">{phoneMsg}</p>{/if}
         {/if}
         <button class="big danger" on:click={stop} disabled={stopping}>
           {stopping ? "Avslutter …" : "Avslutt lading"}
