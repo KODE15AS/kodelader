@@ -20,7 +20,7 @@ Daterte overganger:
 - [x] Betalingsmodell besluttet: reservasjon av fast maksbeløp, trekk kun for faktisk ladet energi (kr/kWh)
 - [x] Driftsplattform besluttet: Docker-stack på Raven etter plattformnormene (project.yaml, compose-labels, handover-katalog). Port 8096 (app) — 8091–8095 er tatt/reservert av prosjekt C og D
 - [x] Offentlig HTTPS avklart: Tailscale Funnel på Raven (sti `/kodelader`, eksisterende Masskette-rute på `/` røres ikke). Raven har fast IP; eget domene/DNS kommer senere — alle URL-er konfigureres derfor via `BASE_URL`
-- [x] SMS-varsling besluttet: Sveve, med to meldinger (start + ferdig med kvitteringslenke, 30 dagers gyldighet)
+- [x] SMS-varsling besluttet: to meldinger (start + ferdig med kvitteringslenke, 30 dagers gyldighet) — sendes via GatewayAPI
 
 ## Maskinvare og nettverk (2026-08-12)
 
@@ -44,7 +44,7 @@ Pris, maksbeløp og øktslutt-regler skal IKKE hardkodes — de lagres i databas
 
 ## Åpne punkter som ikke blokkerer fase 1
 
-- [ ] Sveve-konto opprettes på sveve.no (SMS-integrasjonen bygges ferdig og aktiveres når API-brukernavn/passord foreligger)
+- [x] SMS-leverandør etablert: GatewayAPI (2026-08-21) — token i `.env`, avsender «KODE15», første SMS levert
 - [ ] Avklare med elektriker: installasjon av kontaktor/kurs, forskriftskrav for uttak uten Mode 3-kommunikasjon (styrt stikkontakt / Mode 2)
 - [ ] Eget domene/DNS mot Ravens faste IP (fase 3 — arkitekturen holder dette åpent i forhold til Tailscale)
 - [ ] Fast DHCP-lease for Shelly-enheten (10.10.0.25 er dynamisk tildelt i dag)
@@ -142,27 +142,32 @@ godkjenning i MT-appen → lading → auto-avslutning ved maksbeløp → full ca
 - **Fremtidig mulighet (fase 4+):** Vipps' egen ePayment API med «profile sharing» gir mobilnummer
   automatisk med kundens samtykke i appen — krever egen Vipps-avtale og et parallelt betalingsløp
   ved siden av Nexi. Vurderes hvis frivillig SMS-andel viser seg for lav i drift
-- **Fremtidig mulighet (finpuss, fase 3/4):** Sveve **kodeord** for innkommende SMS
-  (150 kr/mnd + 500 kr etablering, kortnummer f.eks. 27333). Statussiden viser en ferdig utfylt
-  `sms:`-lenke («KODELADER» til kortnummeret) — kunden trykker send, Sveve videresender til
-  vårt webhook med avsenderens nummer, vi matcher mot aktiv økt. To trykk, null tasting,
-  verifisert nummer, helt uten Nets/Vipps. Krever ett nytt endepunkt i appen
+- **Fremtidig mulighet (finpuss, fase 3/4):** SMS-opt-in uten tasting via **innkommende SMS**:
+  statussiden viser en ferdig utfylt `sms:`-lenke — kunden trykker send, SMS-leverandøren
+  videresender til vårt webhook med avsenderens nummer, vi matcher mot aktiv økt. To trykk,
+  null tasting, verifisert nummer, helt uten Nets/Vipps. GatewayAPI støtter innkommende
+  meldinger (virtuelt nummer/keyword + webhook — kostnad avklares). Krever ett nytt endepunkt
 
-### SMS-leverandør byttet til GatewayAPI (2026-08-21)
+### SMS-leverandør: GatewayAPI (2026-08-21)
 
-Sveve Grunnpakke ble etablert og toveis-SMS testet manuelt, men programmatisk sending krever
-API-utvidelsen (+150 kr/mnd = ca. 3 500 kr/år totalt). Siden SMS er valgfri opt-in etter
-Vipps-funnet, blir volumet lavt — **GatewayAPI** (EU-plattformen, gatewayapi.eu) valgt i stedet:
-ingen månedsavgift, betaling per SMS (~0,5–0,9 kr).
+Første SMS-leverandør (abonnementsbasert) ble kansellert med kreditnota samme uke som den ble
+etablert: programmatisk sending krevde API-tillegg, og totalkostnaden (~3 500 kr/år) sto ikke i
+forhold til volumet — SMS er valgfri opt-in etter Vipps-funnet. **GatewayAPI**
+([gatewayapi.com](https://gatewayapi.com) — standardplattformen, tokens gjelder ikke på tvers av
+plattformene) valgt i stedet: ingen månedsavgift, betaling per SMS (~0,5–0,9 kr), €50 kreditt kjøpt.
 
-- `app/src/sms.ts` erstatter `sveve.ts` — `POST /rest/mtsms` med token-autentisering,
-  avsender «KODE15» (maks 11 tegn). Konfig: `GATEWAYAPI_TOKEN` + `SMS_SENDER` i `.env`
+- `app/src/sms.ts` — `POST /rest/mtsms` med token-autentisering, avsender «KODE15»
+  (maks 11 tegn). Konfig: `GATEWAYAPI_TOKEN` + `SMS_SENDER` i `.env`
 - **VIKTIG: URL-er i SMS-tekster må hvitelistes** i GatewayAPI-dashbordet (URL Whitelist)
-  før sending — gjelder kvitteringslenken. Hviteliste Funnel-domenet nå, eget domene i fase 3
+  før sending — gjelder kvitteringslenken. Funnel-domenet er søkt inn; eget domene må søkes
+  i fase 3 **før** `BASE_URL` byttes
+- Verifisert 2026-08-21: start-SMS levert skarpt til ekte nummer under en QR/Vipps-testøkt.
+  Ferdig-SMS-en (med kvitteringslenke) ble avvist av URL-filteret mens hvitelisten sto
+  på «waiting» — retestes når den er godkjent
 - Ettersendings-fiks (2026-08-20): registreres nummeret etter øktslutt, sendes kvitterings-SMS-en
   i etterkant; statussiden viser «ferdig»-kort med SMS-felt og kvitteringslenke
-- Sveve-kontoen beholdes inntil videre for manuell utsendelse/toveis (vurderes ved neste faktura);
-  kodeord-muligheten (se over) er fortsatt aktuell som fremtidig finpuss
+- Fremtidig finpuss: leveringsrapporter via GatewayAPI-webhook, slik at hendelsesloggen skiller
+  «akseptert» fra «levert»
 
 ### Gjenstår i fase 2
 - [ ] Trefaseinstallasjon 400 V TN med elektriker (CT på alle tre faser, kontaktorens fire poler)
