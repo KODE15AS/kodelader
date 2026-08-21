@@ -59,6 +59,10 @@ adminRouter.post("/api/sessions/:id/stop", async (req, res) => {
 adminRouter.get("/api/checks", (_req, res) => {
   res.json(db.prepare("SELECT * FROM checks ORDER BY sort").all());
 });
+// NB: må registreres FØR /api/checks/:id — ellers fanges "run-keys" som sjekkpunkt-ID
+adminRouter.post("/api/checks/run-keys", async (_req, res) => {
+  res.json(await testKeys());
+});
 adminRouter.post("/api/checks/:id", (req, res) => {
   const { status, note } = req.body ?? {};
   const check = db.prepare("SELECT * FROM checks WHERE id=?").get(req.params.id) as any;
@@ -67,9 +71,6 @@ adminRouter.post("/api/checks/:id", (req, res) => {
   setCheck(req.params.id, status === "green" ? "green" : "grey", note);
   logEvent("admin", `Sjekkpunkt ${req.params.id} satt til ${status}`);
   res.json({ ok: true });
-});
-adminRouter.post("/api/checks/run-keys", async (_req, res) => {
-  res.json(await testKeys());
 });
 
 /** Hendelseslogg. */
