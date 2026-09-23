@@ -76,6 +76,25 @@ NB: `<host>` og `<pathAndQuery>` er slik Vipps ser dem — med Tailscale Funnel
 er det Funnel-hostnavnet og stien med `/kodelader`-prefiks. Bruk rå body
 (før JSON-parsing) i hashen.
 
+## Drift og rapportering (for Kode15-administrator)
+
+Manuelt i portalen (portal.vipps.no): **Transaksjoner** (enkeltbetalinger),
+**Rapporter** (oppgjør/regnskap) og **Innsikt** (salgsoversikt).
+
+Programmatisk — skal VURDERES hentet inn i egne admin-sider (port 8097) så
+daglig drift ikke krever portalinnlogging:
+
+- **Report API** (https://developer.vippsmobilepay.com/docs/APIs/report-api/):
+  oppgjørsdata, transaksjonsrapporter og hendelseshistorikk. Tilgjengelig for
+  ePayment-brukersteder med de samme salgsenhet-nøklene som betalingsflyten —
+  ingen egen avtale trengs.
+- **ePayment API:** `GET /epayment/v1/payments/{reference}` (detaljer/status
+  per betaling) og `GET .../{reference}/events` (hendelseslogg) for
+  feilsøking per økt fra admin.
+- Merk: kodeladerens egen SQLite er fortsatt primærkilden for økter/kWh —
+  Vipps-dataene er betalings-/oppgjørssiden av samme historie, koblet på
+  `reference`.
+
 ## Dokumentasjon
 
 - Indeks for AI-agenter: https://developer.vippsmobilepay.com/llms.txt
@@ -88,7 +107,12 @@ er det Funnel-hostnavnet og stien med `/kodelader`-prefiks. Bruk rå body
 
 - [x] Avtale bestilt (2026-09-23), portal-tilgang OK, testbrukere opprettet
 - [x] Salgsvilkår publisert på kode15.no/salgsvilkaar (Vipps-krav til nettside)
-- [ ] Test-API-nøkler hentet fra portalen og lagt i `.env` på raven
+- [x] Test-API-nøkler (MSN 542851, salgssted «KODE15 as - kontordeling Rakkestad»)
+      lagt i `.env` på raven 2026-09-23 og verifisert mot accesstoken-endepunktet
+      (HTTP 200). Repoet er offentlig — nøkler kun i `.env` på raven, sekundærkopi
+      på Jørns PC utenfor repoet
+- [ ] «Integrert betaling»-bestillingen står «Under behandling» i portalen —
+      produksjonsnøkler kommer når den er godkjent
 - [ ] `app/src/vipps.ts`: accesstoken, create payment (med `profile.scope:
       "phoneNumber"`), webhook-mottak med HMAC-validering, delvis capture, cancel
 - [ ] Ende-til-ende-test i MT med testbruker og Vipps MT-appen
