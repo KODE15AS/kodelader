@@ -111,9 +111,19 @@ daglig drift ikke krever portalinnlogging:
       lagt i `.env` på raven 2026-09-23 og verifisert mot accesstoken-endepunktet
       (HTTP 200). Repoet er offentlig — nøkler kun i `.env` på raven, sekundærkopi
       på Jørns PC utenfor repoet
-- [ ] «Integrert betaling»-bestillingen står «Under behandling» i portalen —
-      produksjonsnøkler kommer når den er godkjent
-- [ ] `app/src/vipps.ts`: accesstoken, create payment (med `profile.scope:
-      "phoneNumber"`), webhook-mottak med HMAC-validering, delvis capture, cancel
-- [ ] Ende-til-ende-test i MT med testbruker og Vipps MT-appen
+- [ ] «Integrert betaling»-søknaden mottatt hos Vipps 2026-09-23, oppgitt
+      behandlingstid **2–3 uker**. Produksjons-MSN blir **1165947** (NB: test-MSN
+      er 542851 — to forskjellige salgsenhets-ID-er, ikke bland dem).
+      Testmiljøet er aktivt allerede — MT-testing blokkeres ikke av søknaden
+- [x] `app/src/vipps.ts` bygget og deployet 2026-09-23: accesstoken (cache),
+      create payment (med `profile.scope: "phoneNumber"`), webhook-mottak med
+      HMAC-validering, delvis capture (stabil idempotency-nøkkel per økt), cancel.
+      Leverandørbryter: `PAYMENT_PROVIDER` i `.env` (payments.ts-fasade, nexi beholdt)
+- [x] Webhook registrert (id 2946196c, alle epayments-hendelser) mot
+      `…/kodelader/webhooks/vipps` — secret i `.env`. Røyktest grønn:
+      create 201 → pay-mt.vipps.no, CREATED-webhook HMAC-verifisert gjennom Funnel
+- [ ] Ende-til-ende-test i MT: FØRSTE betaling må godkjennes manuelt i Vipps
+      MT-appen (logg inn med testbruker over) — deretter kan
+      `POST /epayment/v1/test/payments/{reference}/approve` brukes for automatisk
+      godkjenning i senere tester
 - [ ] Skarp aktivering (avventer KYC/godkjenning fra Vipps)

@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { db, getSetting, logEvent, setCheck } from "./db.js";
 import { config } from "./config.js";
-import { createPayment, chargePayment, cancelPayment, getPayment } from "./nexi.js";
+import { createPayment, chargePayment, cancelPayment, getPayment } from "./payments.js";
 import { setSwitch, readEnergyWh, cachedStatus, isOnline, writeAutonomyLimits } from "./devicehub.js";
 import { sendSms } from "./sms.js";
 
@@ -61,7 +61,11 @@ export async function activateSession(paymentId: string, consumer: any): Promise
   // Mobilnummer: webhook-data, ellers payment-oppslag, ellers husket fra cookie ved øktstart
   let phone = phoneFrom(consumer);
   if (!phone) {
-    try { phone = phoneFrom((await getPayment(paymentId))?.consumer); } catch { /* ok */ }
+    // Nexi: nummeret ligger under consumer. Vipps: userDetails på toppnivå.
+    try {
+      const payment = await getPayment(paymentId);
+      phone = phoneFrom(payment?.consumer) ?? phoneFrom(payment);
+    } catch { /* ok */ }
   }
   if (phone) setCheck("phone_present", "green", maskPhone(phone));
   else if (session.phone) {
@@ -202,9 +206,15 @@ export async function tick(): Promise<void> {
     .run(new Date().toISOString(), new Date(now - 3_600_000).toISOString());
 }
 
-function phoneFrom(consumer: any): string | null {
-  const p = consumer?.phoneNumber ?? consumer?.privatePerson?.phoneNumber ?? consumer?.shippingAddress?.phoneNumber;
+/** Trekker mobilnummeret ut av leverandørens data.
+ *  Nexi: consumer.phoneNumber {prefix, number} (og varianter).
+ *  Vipps: userDetails.mobileNumber "4712345678" (profildeling) — objektet kan være
+ *  webhook-payloaden eller GET payment-svaret. */
+function phoneFrom(data: any): string | null {
+  const p = data?.phoneNumber ?? data?.privatePerson?.phoneNumber ?? data?.shippingAddress?.phoneNumber;
   if (p?.prefix && p?.number) return `${p.prefix}${p.number}`;
+  const msisdn = data?.userDetails?.mobileNumber ?? data?.mobileNumber;
+  if (typeof msisdn === "string" && /^47\d{8}$/.test(msisdn)) return `+${msisdn}`;
   return null;
 }
 

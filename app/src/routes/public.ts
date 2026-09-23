@@ -3,6 +3,7 @@ import { db, logEvent, setCheck, getSetting } from "../db.js";
 import { config } from "../config.js";
 import { startSession, activateSession, endSession, sendFinishSms, findSession, maskPhone, deviceOnline } from "../sessions.js";
 import { cachedStatus } from "../devicehub.js";
+import { verifyWebhook as verifyVippsWebhook } from "../vipps.js";
 import { sendSms } from "../sms.js";
 
 export const publicRouter = Router();
@@ -53,6 +54,37 @@ publicRouter.post("/webhooks/nets", async (req, res) => {
       logEvent("økt-feil", `Aktivering feilet: ${err.message}`, body.data.paymentId)
     );
   }
+});
+
+/** Webhook fra Vipps MobilePay (ePayment). HMAC-verifiseres mot secret fra
+ *  webhook-registreringen. Payload: { msn, reference, pspReference, name,
+ *  amount, timestamp, success, userDetails? } — reference er vår økt-ID. */
+publicRouter.post("/webhooks/vipps", async (req, res) => {
+  const rawBody = (req as any).rawBody ?? JSON.stringify(req.body ?? {});
+  if (!verifyVippsWebhook(rawBody, req.headers)) {
+    logEvent("webhook-feil", "Vipps-webhook avvist: ugyldig HMAC-signatur");
+    res.status(401).end();
+    return;
+  }
+  const body = req.body ?? {};
+  const reference = String(body.reference ?? "");
+  logEvent("webhook", `Vipps: ${body.name ?? "ukjent"} for ${reference || "?"}`, reference || undefined);
+  setCheck("webhook_received", "green", `Vipps ${body.name} ${new Date().toISOString()}`);
+  res.status(200).end(); // kvitter umiddelbart — behandling skjer etterpå
+
+  if (!reference) return;
+  if (body.name === "AUTHORIZED") {
+    // Kunden godkjente i appen → start ladingen. Payloaden inneholder
+    // userDetails.mobileNumber (profildeling) som aktiveringssteget plukker opp.
+    activateSession(reference, body).catch((err) =>
+      logEvent("økt-feil", `Aktivering feilet: ${err.message}`, reference));
+  } else if (body.name === "ABORTED" || body.name === "EXPIRED" || body.name === "TERMINATED") {
+    const r = db.prepare(
+      "UPDATE sessions SET status='cancelled', end_reason=?, ended_at=? WHERE id=? AND status='pending'"
+    ).run(`Vipps: ${body.name.toLowerCase()}`, new Date().toISOString(), reference);
+    if (r.changes > 0) logEvent("økt", `Økt ${reference} avbrutt (Vipps ${body.name})`, reference);
+  }
+  // CAPTURED/CANCELLED/REFUNDED er kvitteringer på våre egne kall — logget over
 });
 
 /** Tilstand for brukersiden (offentlig — mobilnumre maskeres). */

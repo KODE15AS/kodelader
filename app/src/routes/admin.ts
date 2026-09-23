@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, allSettings, setSetting, setCheck, logEvent } from "../db.js";
 import { config } from "../config.js";
-import { testKeys } from "../nexi.js";
+import { testKeys } from "../payments.js";
 import { endSession, deviceOnline } from "../sessions.js";
 import { setSwitch, cachedStatus, autonomyScriptStatus, installAutonomyScript } from "../devicehub.js";
 
@@ -20,7 +20,8 @@ adminRouter.get("/api/overview", (_req, res) => {
   }));
   res.json({
     env: config.isLive() ? "SKARP" : "SANDKASSE",
-    apiBase: config.nexiApiBase,
+    provider: config.paymentProvider,
+    apiBase: config.activeApiBase(),
     baseUrl: config.baseUrl,
     smsConfigured: !!config.sms.token,
     devices

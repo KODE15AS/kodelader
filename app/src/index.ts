@@ -15,7 +15,9 @@ const webDist = [resolve(here, "../web-dist"), resolve(here, "../../web-dist")].
 
 // ---- Offentlig app (Funnel /kodelader -> 8096) ----
 const pub = express();
-pub.use(express.json());
+// rawBody trengs for HMAC-verifisering av Vipps-webhooks (signaturen beregnes
+// over kroppen nøyaktig slik den kom på ledningen, før JSON-parsing)
+pub.use(express.json({ verify: (req, _res, buf) => { (req as any).rawBody = buf.toString("utf8"); } }));
 // Funnel kan levere forespørsler både med og uten /kodelader-prefiks — støtt begge.
 pub.use((req, _res, next) => {
   if (req.url === "/kodelader") req.url = "/";
