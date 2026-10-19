@@ -14,3 +14,15 @@ services:
       - ./data:/data
     labels:
       raven.project: "kodelader"
+    networks:
+      - default
+      - enhetsnett
+
+# Enhetsnettet (delt docker-nett på raven, 172.31.100.0/24, opprettet
+# 19.10.2026): direkte HTTP-adgang til smartenhetene på kontor-wifi-en
+# (Shelly 10.10.0.14, Mill 10.10.0.22, …) via FortiGate-policyen «Raven
+# til Klientnett (enheter)» — i tillegg til Shelly-ens innringing via WS.
+# Drenger på nettet når også hverandre med containernavn.
+networks:
+  enhetsnett:
+    external: true
