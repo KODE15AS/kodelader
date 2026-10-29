@@ -39,6 +39,24 @@ installasjon maks strøm = 32,0 A; faktisk strøm L1/L2/L3 = 0,00 A
 drengr via enhetsnettet/policy 19) når porten; akseptert avveining på
 vårt nett.
 
+## Installatør-prosedyren (kveld 29.10): vurdert og kortet ned
+
+Jørn fikk en prosedyre fra elektroinstallatøren (aktiver Modbus i appen,
+noter IP, registertabell). Vurdering mot live-testene: teknisk korrekt
+(registertabellen stemmer med DEFAs protokolldokument), men aktiverings-
+delen er allerede passert — Modbus svarer, fastvaren er dermed ny nok,
+og IP-en er kjent og skal reserveres i fortigate. **Gjenstående app-
+oppgave, den eneste:** i DEFA Power Setup-appen under Junction Settings
+→ Load balancing: verifiser at Modbus står på og sett bevisst
+`Timeout value` + `Fallback current` (forslag 6 A) — ukjent hva de står
+på i dag. Alt annet er vår side: hjerteslag til reg. 2008–2009 hvert
+~10. sekund (ellers faller laderen tilbake til fallback-strømmen —
+ønsket sikkerhetsmekanisme), og én-master-regelen.
+
+Tilleggsregistre fra prosedyren, IKKE live-verifisert ennå (laderen ble
+slått av): 302–303 statuskode, 305–306 total effekt (mW). Verifiseres
+neste gang den er på.
+
 ## Forhold til dagens Shelly-arkitektur
 
 Shelly Pro 3EM (10.10.0.14) + kontaktor forblir betalings- og

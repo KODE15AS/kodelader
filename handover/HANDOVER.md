@@ -278,7 +278,10 @@ verifisert fra raven (maksstrøm 32 A lest). Jørns beslutning: Modbus er
 integrasjonsveien (laststyring + måling); CloudCharge-API kun som
 uoffisiell reserve. Hele utredningen:
 `2026-10-29-defa-power-modbus.md`. DHCP-reservasjon ligger i
-fortigate-drengens planlagte ordre.
+fortigate-drengens planlagte ordre. Installatør-prosedyren er vurdert og
+kortet ned til ÉN gjenstående app-oppgave: sett Timeout + Fallback
+current (forslag 6 A) i Junction Settings → Load balancing; resten
+(hjerteslag, registre, master-rolle) er vår side og står i notatet.
 
 ## Fase 3 (produksjon)
 
