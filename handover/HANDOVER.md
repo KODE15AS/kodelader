@@ -270,6 +270,16 @@ Deploy på Raven + scriptinstallasjon på ekte Shelly gikk knirkefritt (én knap
   bevisst til all funksjonalitet er på plass og ferdig testet (inkl. kobling mot bilen —
   kan drøye). Begge står som sjekkpunkter i admin og i fase 3-listen, så de glemmes ikke
 
+## DEFA Power på wifi — Modbus TCP valgt (29.10.2026)
+
+Laderen DEFA-Power-56101410M står på KODE15-wifi-en (10.10.0.16) og nås
+med Modbus TCP (port 502, slave 255) — allerede aktivert og live-
+verifisert fra raven (maksstrøm 32 A lest). Jørns beslutning: Modbus er
+integrasjonsveien (laststyring + måling); CloudCharge-API kun som
+uoffisiell reserve. Hele utredningen:
+`2026-10-29-defa-power-modbus.md`. DHCP-reservasjon ligger i
+fortigate-drengens planlagte ordre.
+
 ## Fase 3 (produksjon)
 
 - [ ] Live-nøkler (legges kun inn i `.env` på Raven av Jørn)
