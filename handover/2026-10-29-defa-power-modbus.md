@@ -64,8 +64,8 @@ connect/disconnect → nekter nye tilkoblinger en periode) og
 enkeltregister-lesing i serie på samme forbindelse (timeout). Det
 robuste mønsteret er **én forbindelse + blokklesing av hele
 registerområdet 290–306 i én forespørsel**. Referanseskript:
-`verktoy/les_defa_status.py` i DEFA-pretest-prosjektet (flyttes hit
-når det prosjektet slettes).
+`verktoy/les_defa_status.py` her i repoet (berget fra
+pretest-prosjektet 05.11, kjørt og verifisert fra raven).
 
 ## Forhold til dagens Shelly-arkitektur
 
