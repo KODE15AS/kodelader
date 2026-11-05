@@ -67,6 +67,26 @@ registerområdet 290–306 i én forespørsel**. Referanseskript:
 `verktoy/les_defa_status.py` her i repoet (berget fra
 pretest-prosjektet 05.11, kjørt og verifisert fra raven).
 
+## Display-skriving (utredet 05.11): mulig — men via OCPP, ikke Modbus
+
+Jørns spørsmål: kan vi skrive til displayet på laderne? Svar:
+
+- **Modbus: nei.** Det offisielle registerkartet er komplett (hentet
+  05.11) og har ingen tekst-/displayregistre. Bonusfunn derfra:
+  status-reg. 302 er ASCII-kodet IEC-tilstand (bits 8–15 = bokstav A–F,
+  bits 0–7 = «1»/«2»; eks. 0x4332 = «C2» = lading) — bruk dette i
+  visninger.
+- **OCPP 2.0.1 DisplayMessage: ja, designet for det.** DEFA: «The
+  display is a platform … through the Display and Messaging module»
+  (spotpriser, CPO-logo, fritekst UTF8 med prioritet/tidsvindu).
+- **Porten:** laderen godtar kun godkjente CSMS-backends (ikke
+  egendefinert URL). Reell vei: be DEFA legge inn vår backend
+  (contact@defa.com, de tilbyr det eksplisitt) og kjøre et minimalt
+  OCPP 2.0.1-CSMS som container i denne drengen (python-ocpp /
+  CitrineOS). Samme kobling gir offisiell start/stopp, ladeprofiler og
+  diagnostikk. DNS-overstyring av et godkjent CSMS-navn er teknisk
+  tenkbart (vi eier FortiGate-DNS-en) men skjørt — frarådes.
+
 ## Forhold til dagens Shelly-arkitektur
 
 Shelly Pro 3EM (10.10.0.14) + kontaktor forblir betalings- og
