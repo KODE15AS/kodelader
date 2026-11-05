@@ -4,9 +4,12 @@ Jørn satte DEFA Power-laderen på KODE15-wifi-en 29.10 (Bluetooth-oppsett
 via DEFA Power Setup-appen). Utredning av API-muligheter gjort samme dag
 (chat i studio15-light); Jørns beslutning: **Modbus TCP**.
 
-## Enheten
+## Enhetene (oppdatert 05.11: det er nå TO ladere)
 
 - **DEFA-Power-56101410M**, 10.10.0.16 (MAC 48:02:af:d4:47:4f).
+- **DEFA-Power-54C00W10M**, 10.10.0.21 (MAC 00:21:7e:f2:38:38) — på
+  wifi 05.11. Modbus verifisert på begge (32 A maks installasjonsstrøm
+  lest). Reservasjonen for nr. 2 må inn i fortigate-ordren.
 - OBS dynamisk IP: reservasjon → 10.10.0.16 er lagt i fortigate-drengens
   planlagte DHCP-ordre (sammen med Mill/Shelly/raven). Til den er utført:
   slå opp i FortiGates DHCP-utleieliste ved IP-drift.
@@ -53,9 +56,13 @@ på i dag. Alt annet er vår side: hjerteslag til reg. 2008–2009 hvert
 ~10. sekund (ellers faller laderen tilbake til fallback-strømmen —
 ønsket sikkerhetsmekanisme), og én-master-regelen.
 
-Tilleggsregistre fra prosedyren, IKKE live-verifisert ennå (laderen ble
-slått av): 302–303 statuskode, 305–306 total effekt (mW). Verifiseres
-neste gang den er på.
+Tilleggsregistre fra prosedyren, IKKE live-verifisert ennå: 302–303
+statuskode, 305–306 total effekt (mW). Forsøk 05.11 traff en
+driftslærdom i stedet: etter flere raske tilkoblinger på rad slutter
+laderen å akseptere NYE TCP-tilkoblinger en periode (rimer med
+én-master-regelen). Integrasjonen skal derfor holde ÉN stående
+Modbus-forbindelse og lese alt over den — ikke koble til/fra per
+avlesning.
 
 ## Forhold til dagens Shelly-arkitektur
 
