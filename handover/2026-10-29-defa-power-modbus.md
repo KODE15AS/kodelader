@@ -56,13 +56,16 @@ på i dag. Alt annet er vår side: hjerteslag til reg. 2008–2009 hvert
 ~10. sekund (ellers faller laderen tilbake til fallback-strømmen —
 ønsket sikkerhetsmekanisme), og én-master-regelen.
 
-Tilleggsregistre fra prosedyren, IKKE live-verifisert ennå: 302–303
-statuskode, 305–306 total effekt (mW). Forsøk 05.11 traff en
-driftslærdom i stedet: etter flere raske tilkoblinger på rad slutter
-laderen å akseptere NYE TCP-tilkoblinger en periode (rimer med
-én-master-regelen). Integrasjonen skal derfor holde ÉN stående
-Modbus-forbindelse og lese alt over den — ikke koble til/fra per
-avlesning.
+Tilleggsregistrene er VERIFISERT 05.11 (av Studio15-agenten i
+DEFA-pretest-flaten, på begge ladere): 302–303 statuskode (0 i ro),
+305–306 total effekt (0 mW i ro). Driftslærdom, presisert gjennom to
+funn samme dag: laderen misliker både tilkoblings-churn (mange raske
+connect/disconnect → nekter nye tilkoblinger en periode) og
+enkeltregister-lesing i serie på samme forbindelse (timeout). Det
+robuste mønsteret er **én forbindelse + blokklesing av hele
+registerområdet 290–306 i én forespørsel**. Referanseskript:
+`verktoy/les_defa_status.py` i DEFA-pretest-prosjektet (flyttes hit
+når det prosjektet slettes).
 
 ## Forhold til dagens Shelly-arkitektur
 
