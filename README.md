@@ -8,9 +8,9 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 
 | Hva | Tilgang | URL |
 |---|---|---|
-| Brukerside (status/økter) | 🌐 Offentlig (Tailscale Funnel) | [cadify104raven.tail14de1b.ts.net/kodelader](https://cadify104raven.tail14de1b.ts.net/kodelader) |
-| Start lading proto1 — test kr 1 | 🌐 Offentlig (= QR-koden) | […/kodelader/start?enhet=proto1&produkt=kr1](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr1) |
-| Start lading proto1 — kr 100 | 🌐 Offentlig (= QR-koden) | […/kodelader/start?enhet=proto1&produkt=kr100](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr100) |
+| Brukerside (status/økter) | 🌐 Offentlig (web-gateway) | [kodelader.kode15.app](https://kodelader.kode15.app) |
+| Start lading proto1 — test kr 1 | 🌐 Offentlig (= QR-koden) | […/start?enhet=proto1&produkt=kr1](https://kodelader.kode15.app/start?enhet=proto1&produkt=kr1) |
+| Start lading proto1 — kr 100 | 🌐 Offentlig (= QR-koden) | […/start?enhet=proto1&produkt=kr100](https://kodelader.kode15.app/start?enhet=proto1&produkt=kr100) |
 | OCPP-endepunkt for DEFA-laderne (CSMS) | 🌐 Offentlig via web-gateway — 404 med gyldig TLS = friskt (kun `/ocpp/*` rutes, WebSocket + Basic Auth) | [lading.kode15.app](https://lading.kode15.app) |
 | Admin (enheter/økter/innstillinger/etablering/CSMS-logg) | 🔒 Kun tailnettet | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) |
 | Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | 🔒 Kun KODE15-wifi — dynamisk IP, sjekk ruterens klientliste | [10.10.0.25](http://10.10.0.25) |
@@ -21,7 +21,7 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 
 🌐 Offentlig — kan nås fra internett. 🔒 Kun internt (tailnett/kontor-wifi).
 
-QR-kodene (kr 1 og kr 100 for proto1) ligger i [docs/qr/](docs/qr/). Eget domene erstatter Funnel-adressen i fase 3 — da må det nye domenet også hvitelistes hos GatewayAPI før `BASE_URL` byttes. Startsiden [kode15.app](https://kode15.app) lenker hit fra DRENGR-menyen.
+QR-kodene (kr 1 og kr 100 for proto1) ligger i [docs/qr/](docs/qr/) og peker på kodelader.kode15.app (cutover 06.11.2026 — nye koder må klistres på laderen; de gamle Funnel-kodene virker til Funnel-ruten avvikles). Startsiden [kode15.app](https://kode15.app) lenker hit fra DRENGR-menyen. NB: kodelader.kode15.app må hvitelistes i GatewayAPI-dashbordet (URL Whitelist) før neste SMS med kvitteringslenke sendes.
 
 ## Slik virker det
 

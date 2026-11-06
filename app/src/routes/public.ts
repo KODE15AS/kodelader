@@ -56,6 +56,15 @@ publicRouter.post("/webhooks/nets", async (req, res) => {
   }
 });
 
+/** GET-livssjekk for webhook-endepunktene (norm «lenker»: klikkbar lenke
+ *  skal gi en kort statuslinje, ikke 404/405 — mottak skjer kun med POST). */
+publicRouter.get("/webhooks/vipps", (_req, res) => {
+  res.type("text/plain").send("Kodelader Vipps-webhook: i drift — hendelser mottas med POST (HMAC-verifisert).");
+});
+publicRouter.get("/webhooks/nets", (_req, res) => {
+  res.type("text/plain").send("Kodelader Nexi-webhook: i drift — hendelser mottas med POST (Authorization-verifisert).");
+});
+
 /** Webhook fra Vipps MobilePay (ePayment). HMAC-verifiseres mot secret fra
  *  webhook-registreringen. Payload: { msn, reference, pspReference, name,
  *  amount, timestamp, success, userDetails? } — reference er vår økt-ID. */
