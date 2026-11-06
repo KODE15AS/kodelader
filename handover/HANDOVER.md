@@ -25,6 +25,8 @@ Daterte overganger:
 
 - **2026-11-06 — Admin-knapp i brukersidens header + profilrevisjon.** Valgt løsning B (Jørn): server-side kontor-deteksjon — `GET /api/klient` sammenligner første X-Forwarded-For-ledd (hairpin via web-gateway gir kontorets offentlige IP) med ny innstilling `kontor_ip` (62.92.43.149, redigerbar i admin). Intern klient får aktiv Admin-knapp i headeren; andre får den grå (stiplet, tooltip «Admin krever tailnett eller KODE15-kontor-wifi»). Knappen er kun veivisning — tilgangsstyringen er fortsatt nettverket. Samtidig: `style.css` skrevet om tro mot fasiten `webprofil-kode15/kode15.css` (tokens, beige pilleknapper, hvit header, Montserrat 400/500; lamp-statusfargene beholdt som app-tillegg), og ny KODE15.app-logo (2026-11-04-varianten, nedskalert 480px) i headeren på både brukersiden og kode15.app. Verifisert: intern=true via gateway fra kontor-IP, intern=false med fremmed IP, logoer serveres begge steder
 
+- **2026-11-06 — Finpuss brukerside + wifi-gåten løst.** Grå Admin-knapp på wifi forklart ved måling fra ravens eget wifi-ben (`wlo1`, 10.10.0.33): FortiGaten hairpin-SNAT-er wifi-klienter til sitt server-LAN-ben **10.5.0.1** — ikke til 62.92.43.149 som kablede klienter. `kontor_ip` er nå kommaseparert liste (prefiks med avsluttende punktum støttes) og satt til `62.92.43.149, 10.5.0.1`; `GET /api/klient` returnerer også observert IP for fremtidig diagnose. Øvrig finpuss: headerens hvite bånd og logo matcher hovedsiden (22px 32px / 58px, mobil 42px), logoen lenker til https://kode15.app, og brødsmuler (`k15-smuler`-mønsteret: kode15.app › kodelader) over innholdet. Verifisert i Jørns nettleser: aktiv Admin-lenke fra wifi, Shelly ringte inn igjen 10 s etter deploy
+
 ---
 
 ## Hvor vi står (fase 0 — fullført)

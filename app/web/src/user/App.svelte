@@ -77,7 +77,9 @@
 </script>
 
 <div class="topbar">
-  <img class="logo" src="./kode15-app-logo.png" alt="KODE15.app" />
+  <a href="https://kode15.app" aria-label="Til hovedsiden kode15.app">
+    <img class="logo" src="./kode15-app-logo.png" alt="KODE15.app" />
+  </a>
   <span class="brand">· Kodelader</span>
   <span class="spacer"></span>
   {#if state && state.env === "SKARP"}
@@ -93,6 +95,11 @@
 </div>
 
 <main class="narrow">
+  <nav class="smuler" aria-label="Brødsmuler">
+    <a href="https://kode15.app">kode15.app</a>
+    <span class="skille">›</span>
+    <span class="naa">kodelader</span>
+  </nav>
   {#if !state}
     <p class="muted">Henter status …</p>
   {:else}

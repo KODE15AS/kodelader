@@ -80,9 +80,12 @@ const defaultSettings: Record<string, string> = {
   // DEFA-laderne (SN=IP,...): IP-ene er dynamiske til fortigate-DHCP-reservasjonene
   // er utført — redigeres i admin ved IP-drift (sjekk FortiGates DHCP-utleieliste)
   defa_ladere: "56101410M=10.10.0.16,54C00W10M=10.10.0.21",
-  // Kontorets offentlige IP: klienter herfra (hairpin via web-gateway) regnes som
-  // «interne» og får aktiv Admin-knapp på brukersiden. Endres hvis linjen byttes.
-  kontor_ip: "62.92.43.149"
+  // Kontornettets avsender-adresser sett fra web-gateway (kommaseparert; oppføring
+  // som slutter med punktum er prefiks). Klienter herfra regnes som «interne» og
+  // får aktiv Admin-knapp på brukersiden. Kablet gir 62.92.43.149, wifi-klienter
+  // hairpin-SNAT-es til 10.5.0.1 (FortiGatens server-LAN-ben) — se /api/klient
+  // for diagnose av nye tilfeller.
+  kontor_ip: "62.92.43.149, 10.5.0.1"
 };
 
 export function getSetting(key: string): string {

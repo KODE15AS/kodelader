@@ -50,12 +50,12 @@ h3 { font-weight: 500; }
   background: var(--k15-hvit);
   color: var(--k15-skifer);
   border-bottom: 1px solid var(--k15-linje);
-  padding: 12px 20px;
+  padding: 22px 32px; /* som hovedsiden kode15.app (.k-topp) */
   display: flex;
   align-items: center;
   gap: 12px;
 }
-.topbar .logo { height: 40px; width: auto; display: block; }
+.topbar .logo { height: 58px; width: auto; display: block; }
 .topbar .brand {
   font-family: var(--k15-font-heading);
   font-weight: 500;
@@ -212,9 +212,23 @@ label {
 }
 .kpi .label { color: var(--k15-blaagraa-lys); font-size: 0.8rem; }
 
+/* --- Brødsmuler (k15-smuler, GitHub-stil) --- */
+.smuler {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+.smuler a { color: var(--k15-blaagraa-mork); text-decoration: none; }
+.smuler a:hover { text-decoration: underline; }
+.smuler .skille { color: var(--k15-noytralgraa); }
+.smuler .naa { color: var(--k15-tekst); font-weight: 600; }
+
 @media (max-width: 600px) {
-  .topbar { padding: 10px 14px; gap: 8px; }
-  .topbar .logo { height: 32px; }
+  .topbar { padding: 14px 16px; gap: 8px; }
+  .topbar .logo { height: 42px; }
   main { padding: 14px; }
   .card { padding: 16px 18px; }
 }

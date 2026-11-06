@@ -31,7 +31,12 @@ function rememberedPhone(req: { headers: { cookie?: string } }): string | null {
 publicRouter.get("/api/klient", (req, res) => {
   const klientIp = String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim()
     || req.socket.remoteAddress || "";
-  res.json({ intern: klientIp === getSetting("kontor_ip") });
+  // kontor_ip er kommaseparert liste; oppføring med avsluttende punktum
+  // er prefiks (f.eks. "10.10.0." dekker hele wifi-subnettet)
+  const intern = getSetting("kontor_ip").split(",")
+    .map((o) => o.trim()).filter(Boolean)
+    .some((o) => o.endsWith(".") ? klientIp.startsWith(o) : klientIp === o);
+  res.json({ intern, ip: klientIp });
 });
 
 /** QR-landing: oppretter betaling og videresender rett til Nexi hosted checkout. */
