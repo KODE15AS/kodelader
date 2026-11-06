@@ -13,7 +13,7 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 | Start lading proto1 — kr 100 | 🌐 Offentlig (= QR-koden) | […/start?enhet=proto1&produkt=kr100](https://kodelader.kode15.app/start?enhet=proto1&produkt=kr100) |
 | OCPP-endepunkt for DEFA-laderne (CSMS) | 🌐 Offentlig via web-gateway — 404 med gyldig TLS = friskt (kun `/ocpp/*` rutes, WebSocket + Basic Auth) | [lading.kode15.app](https://lading.kode15.app) |
 | Admin (enheter/økter/innstillinger/etablering/CSMS-logg) | 🔒 Kun tailnettet | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) |
-| Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | 🔒 Kun KODE15-wifi — dynamisk IP, sjekk ruterens klientliste | [10.10.0.25](http://10.10.0.25) |
+| Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | 🔒 Kun KODE15-wifi — dynamisk IP til DHCP-reservasjonen er utført (fortigate-ordren); driftet .25→.14 høsten 2026 | [10.10.0.14](http://10.10.0.14) |
 | Dette repoet på GitHub | 🌐 Offentlig | [github.com/KODE15AS/kodelader](https://github.com/KODE15AS/kodelader) |
 | Vipps MobilePay-portal (transaksjoner, rapporter, API-nøkler) | 🌐 Innlogging | [portal.vipps.no](https://portal.vipps.no) |
 | Nexi Checkout-portal (reserve-kortkanal) | 🌐 Innlogging | [portal.dibspayment.eu](https://portal.dibspayment.eu) |

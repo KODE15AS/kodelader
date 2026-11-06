@@ -61,7 +61,7 @@ Pris, maksbeløp og øktslutt-regler skal IKKE hardkodes — de lagres i databas
 - [x] SMS-leverandør etablert: GatewayAPI (2026-08-21) — token i `.env`, avsender «KODE15», første SMS levert
 - [ ] Avklare med elektriker: installasjon av kontaktor/kurs, forskriftskrav for uttak uten Mode 3-kommunikasjon (styrt stikkontakt / Mode 2)
 - [ ] Eget domene/DNS mot Ravens faste IP (fase 3 — arkitekturen holder dette åpent i forhold til Tailscale)
-- [ ] Fast DHCP-lease for Shelly-enheten (10.10.0.25 er dynamisk tildelt i dag)
+- [ ] Fast DHCP-lease for Shelly-enheten (dynamisk — driftet 10.10.0.25→10.10.0.14 høsten 2026, verifisert 06.11; reservasjon ligger i fortigate-drengens planlagte DHCP-ordre)
 - [x] ~~Admin-grensesnitt for innstillinger~~ — levert som del av fase 1 (se Web-UI under)
 
 ## Plan for fase 1 — betalingsflyt, WebSocket og SMS
