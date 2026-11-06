@@ -79,7 +79,10 @@ const defaultSettings: Record<string, string> = {
   payment_methods: "vipps",     // "vipps" = kun Vipps i checkout — "alle" = alt avtalen dekker (kort vises som default)
   // DEFA-laderne (SN=IP,...): IP-ene er dynamiske til fortigate-DHCP-reservasjonene
   // er utført — redigeres i admin ved IP-drift (sjekk FortiGates DHCP-utleieliste)
-  defa_ladere: "56101410M=10.10.0.16,54C00W10M=10.10.0.21"
+  defa_ladere: "56101410M=10.10.0.16,54C00W10M=10.10.0.21",
+  // Kontorets offentlige IP: klienter herfra (hairpin via web-gateway) regnes som
+  // «interne» og får aktiv Admin-knapp på brukersiden. Endres hvis linjen byttes.
+  kontor_ip: "62.92.43.149"
 };
 
 export function getSetting(key: string): string {

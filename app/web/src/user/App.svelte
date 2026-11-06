@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
 
   let state: any = null;
+  let intern: boolean | null = null; // kontor-wifi? styrer Admin-knappen i headeren
   let stopping = false;
   let phoneInput = "";
   let phoneMsg = "";
@@ -69,15 +70,25 @@
 
   onMount(() => {
     refresh();
+    fetch(`${base}/api/klient`).then((r) => r.json()).then((d) => (intern = !!d.intern)).catch(() => (intern = false));
     const t = setInterval(refresh, 5000);
     return () => clearInterval(t);
   });
 </script>
 
 <div class="topbar">
-  <div class="brand">KODE15 <span>· Kodelader</span></div>
-  {#if state}
-    <span class="badge {state.env === 'SKARP' ? 'live' : 'test'}">{state.env}</span>
+  <img class="logo" src="./kode15-app-logo.png" alt="KODE15.app" />
+  <span class="brand">· Kodelader</span>
+  <span class="spacer"></span>
+  {#if state && state.env === "SKARP"}
+    <span class="badge live">SKARP</span>
+  {:else if state}
+    <span class="badge test">{state.env}</span>
+  {/if}
+  {#if intern}
+    <a class="adminknapp" href="http://cadify104raven.tail14de1b.ts.net:8097">Admin</a>
+  {:else}
+    <span class="adminknapp av" title="Admin krever tailnett eller KODE15-kontor-wifi" aria-disabled="true">Admin</span>
   {/if}
 </div>
 

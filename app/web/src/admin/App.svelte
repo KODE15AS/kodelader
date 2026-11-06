@@ -262,6 +262,9 @@
         <option value="alle">Alle metoder — Vipps, kort m.m. (kort vises som default, styrt av Nexi)</option>
       </select>
       <p class="muted">Gjelder neste økt som startes. «Kun Vipps» utelukker kunder uten Vipps-app.</p>
+      <h2 style="margin-top:18px">Kontor-nett</h2>
+      <label>Kontorets offentlige IP (klienter herfra får aktiv Admin-knapp på brukersiden)</label>
+      <input bind:value={settingsData.settings.kontor_ip} />
       <h2 style="margin-top:18px">DEFA-ladere (Modbus)</h2>
       <label>Ladere (SN=IP, kommaseparert — IP-ene er dynamiske til DHCP-reservasjonene er utført)</label>
       <input bind:value={settingsData.settings.defa_ladere} />

@@ -24,6 +24,16 @@ function rememberedPhone(req: { headers: { cookie?: string } }): string | null {
   return /^\+47[49]\d{7}$/.test(p) ? p : null;
 }
 
+/** Er klienten «intern» (kontor-wifi)? Hairpin via web-gateway gir kontorets
+ *  offentlige IP som første X-Forwarded-For-ledd. Brukes KUN til å vise
+ *  Admin-knappen aktiv/grå på brukersiden — tilgangsstyringen til admin er
+ *  fortsatt nettverket selv (tailnett/wifi), ikke denne sjekken. */
+publicRouter.get("/api/klient", (req, res) => {
+  const klientIp = String(req.headers["x-forwarded-for"] ?? "").split(",")[0].trim()
+    || req.socket.remoteAddress || "";
+  res.json({ intern: klientIp === getSetting("kontor_ip") });
+});
+
 /** QR-landing: oppretter betaling og videresender rett til Nexi hosted checkout. */
 publicRouter.get("/start", async (req, res) => {
   const deviceId = String(req.query.enhet ?? "");
