@@ -11,7 +11,8 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 | Brukerside (status/økter) | [cadify104raven.tail14de1b.ts.net/kodelader](https://cadify104raven.tail14de1b.ts.net/kodelader) | Offentlig (Tailscale Funnel) |
 | Start lading proto1 — test kr 1 | […/kodelader/start?enhet=proto1&produkt=kr1](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr1) | Offentlig (= QR-koden) |
 | Start lading proto1 — kr 100 | […/kodelader/start?enhet=proto1&produkt=kr100](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr100) | Offentlig (= QR-koden) |
-| Admin (enheter/økter/innstillinger/etablering) | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) | Kun tailnettet |
+| Admin (enheter/økter/innstillinger/etablering/CSMS-logg) | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) | Kun tailnettet |
+| OCPP-endepunkt for DEFA-laderne (CSMS) | [lading.kode15.app](https://lading.kode15.app) | Offentlig via web-gateway — 404 med gyldig TLS = friskt (kun `/ocpp/*` rutes, WebSocket + Basic Auth) |
 | Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | [10.10.0.25](http://10.10.0.25) | Kun KODE15-wifi — dynamisk IP, sjekk ruterens klientliste hvis den ikke svarer |
 | Nexi Checkout-portal (API-nøkler, transaksjoner) | [portal.dibspayment.eu](https://portal.dibspayment.eu) | Innlogging |
 | GatewayAPI-dashbord (SMS, URL-hviteliste) | [gatewayapi.com](https://gatewayapi.com) | Innlogging |

@@ -74,6 +74,17 @@ adminRouter.post("/api/checks/:id", (req, res) => {
   res.json({ ok: true });
 });
 
+/** CSMS-logg (OCPP): hentes fra kodelader-csms på det interne compose-nettet.
+ *  Containeren publiserer ingen port — kun gatewayen (/ocpp/*) og vi når den. */
+adminRouter.get("/api/csms-logg", async (_req, res) => {
+  try {
+    const r = await fetch("http://kodelader-csms:9000/api/logg", { signal: AbortSignal.timeout(3000) });
+    res.json(await r.json());
+  } catch (err) {
+    res.status(502).json({ error: `CSMS-containeren svarer ikke: ${(err as Error).message}` });
+  }
+});
+
 /** Hendelseslogg. */
 adminRouter.get("/api/events", (req, res) => {
   const limit = Math.min(parseInt(String(req.query.limit ?? "100"), 10), 500);

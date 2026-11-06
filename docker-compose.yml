@@ -18,11 +18,32 @@ services:
       - default
       - enhetsnett
 
+  # CSMS — OCPP 2.0.1-endepunkt for DEFA-laderne. Web-gateway proxyer
+  # wss://lading.kode15.app/ocpp/* hit via drengr-nett (kontrakt i
+  # handover/2026-11-05-peker-fra-sikkerhetssjef-ocpp.md). Stasjoner og
+  # passord i .env (OCPP_STASJONER). Ingen publisert port — nås kun via
+  # gatewayen og de interne nettene.
+  csms:
+    build: ./csms
+    container_name: kodelader-csms
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./csms-data:/data
+    labels:
+      raven.project: "kodelader"
+    networks:
+      - default
+      - drengr-nett
+
 # Enhetsnettet (delt docker-nett på raven, 172.31.100.0/24, opprettet
 # 19.10.2026): direkte HTTP-adgang til smartenhetene på kontor-wifi-en
 # (Shelly 10.10.0.14, Mill 10.10.0.22, …) via FortiGate-policyen «Raven
 # til Klientnett (enheter)» — i tillegg til Shelly-ens innringing via WS.
 # Drenger på nettet når også hverandre med containernavn.
+# Drengr-nettet er flåtens felles møteplass — web-gateway når CSMS-et der.
 networks:
   enhetsnett:
+    external: true
+  drengr-nett:
     external: true

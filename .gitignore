@@ -13,6 +13,7 @@ node_modules/
 app/dist/
 app/web-dist/
 data/
+csms-data/
 
 # Diverse
 _gitlog.txt

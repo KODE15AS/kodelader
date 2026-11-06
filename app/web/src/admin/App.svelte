@@ -7,6 +7,7 @@
   let sessions: any[] = [];
   let checks: any[] = [];
   let events: any[] = [];
+  let csms: any = null;
   let saveMsg = "";
   let keyTestMsg = "";
   let scriptStatus: Record<string, any> = {};
@@ -22,6 +23,7 @@
     if (tab === "innstillinger" && !settingsData) settingsData = await get("/api/settings");
     if (tab === "okter") sessions = await get("/api/sessions?limit=100");
     if (tab === "etablering") { checks = await get("/api/checks"); events = await get("/api/events?limit=50"); }
+    if (tab === "csms") csms = await get("/api/csms-logg");
   }
 
   async function saveSettings() {
@@ -117,6 +119,7 @@
     <button class:active={tab === "okter"} on:click={() => setTab("okter")}>02 Økter</button>
     <button class:active={tab === "innstillinger"} on:click={() => setTab("innstillinger")}>03 Innstillinger</button>
     <button class:active={tab === "etablering"} on:click={() => setTab("etablering")}>04 Etablering</button>
+    <button class:active={tab === "csms"} on:click={() => setTab("csms")}>05 CSMS</button>
   </div>
 
   {#if tab === "enheter" && overview}
@@ -228,6 +231,44 @@
       </select>
       <p class="muted">Gjelder neste økt som startes. «Kun Vipps» utelukker kunder uten Vipps-app.</p>
       <p><button on:click={saveSettings}>Lagre innstillinger</button> <span class="muted">{saveMsg}</span></p>
+    </div>
+  {/if}
+
+  {#if tab === "csms"}
+    <div class="card">
+      <h2><span class="num">05</span>CSMS — OCPP-endepunkt (lading.kode15.app)</h2>
+      {#if csms?.error}
+        <p><span class="lamp red"></span>{csms.error}</p>
+      {:else if csms}
+        <div class="kpi">
+          {#each csms.stasjoner as s}
+            <div class="item">
+              <div class="value"><span class="lamp {s.tilkoblet ? 'green' : 'grey'}"></span>{s.tilkoblet ? "TILKOBLET" : "FRAKOBLET"}</div>
+              <div class="label">{s.id}{s.sist_sett ? ` · sist sett ${dt(s.sist_sett)}` : ""}{s.ip ? ` · ${s.ip}` : ""}</div>
+            </div>
+          {/each}
+        </div>
+        <p class="muted">Laderne kobler seg til først når operatør velges i DEFA Power Setup-appen (etter DEFA-bekreftelsen). Frem til da viser loggen tilkoblingsforsøk og avvisninger (404 ukjent stasjon / 401 feil autentisering).</p>
+        <table>
+          <thead><tr><th>Tid</th><th>Utfall</th><th>Stasjon</th><th>IP</th><th>Detalj</th></tr></thead>
+          <tbody>
+            {#each csms.hendelser as h}
+              <tr>
+                <td class="muted" style="white-space:nowrap">{dt(h.ts)}</td>
+                <td><span class="lamp {h.hendelse.startsWith('avvist') ? 'red' : h.hendelse === 'tilkoblet' || h.hendelse === 'boot' ? 'green' : 'grey'}"></span>{h.hendelse}</td>
+                <td>{h.stasjon ?? "—"}</td>
+                <td class="muted">{h.ip ?? "—"}</td>
+                <td class="muted">{h.detalj}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+        {#if csms.hendelser.length === 0}
+          <p class="muted">Ingen tilkoblingsforsøk logget ennå.</p>
+        {/if}
+      {:else}
+        <p class="muted">Henter …</p>
+      {/if}
     </div>
   {/if}
 
