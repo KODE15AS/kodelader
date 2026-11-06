@@ -76,7 +76,10 @@ const defaultSettings: Record<string, string> = {
   max_session_hours: "12",      // makstid per økt (sikkerhetsnett)
   receipt_days: "30",           // kvitteringens levetid
   skip_checkout_form: "1",      // 1 = skjul navn/adresse-skjemaet i checkout (merchantHandlesConsumerData)
-  payment_methods: "vipps"      // "vipps" = kun Vipps i checkout — "alle" = alt avtalen dekker (kort vises som default)
+  payment_methods: "vipps",     // "vipps" = kun Vipps i checkout — "alle" = alt avtalen dekker (kort vises som default)
+  // DEFA-laderne (SN=IP,...): IP-ene er dynamiske til fortigate-DHCP-reservasjonene
+  // er utført — redigeres i admin ved IP-drift (sjekk FortiGates DHCP-utleieliste)
+  defa_ladere: "56101410M=10.10.0.16,54C00W10M=10.10.0.21"
 };
 
 export function getSetting(key: string): string {

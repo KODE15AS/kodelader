@@ -8,6 +8,8 @@
   let checks: any[] = [];
   let events: any[] = [];
   let csms: any = null;
+  let defa: any[] | null = null;
+  let defaMsg = "";
   let saveMsg = "";
   let keyTestMsg = "";
   let scriptStatus: Record<string, any> = {};
@@ -53,6 +55,14 @@
     checks = await get("/api/checks");
   }
 
+  async function loadDefa() {
+    // Modbus-lesing skjer kun her (knapp/faneåpning) — bevisst utenfor 5 s-løkka,
+    // laderne misliker tilkoblings-støy (se handover 2026-10-29)
+    defaMsg = "Leser status over Modbus …";
+    defa = await get("/api/defa");
+    defaMsg = "";
+  }
+
   async function loadScriptStatus() {
     if (!overview) return;
     for (const d of overview.devices) {
@@ -96,11 +106,11 @@
   function setTab(t: string) {
     tab = t;
     settingsData = null;
-    refresh().then(() => { if (t === "enheter") loadScriptStatus(); });
+    refresh().then(() => { if (t === "enheter") { loadScriptStatus(); loadDefa(); } });
   }
 
   onMount(() => {
-    refresh().then(loadScriptStatus);
+    refresh().then(() => { loadScriptStatus(); loadDefa(); });
     const t = setInterval(refresh, 5000);
     return () => clearInterval(t);
   });
@@ -163,6 +173,28 @@
         </p>
       </div>
     {/each}
+
+    {#if defa}
+      {#each defa as l}
+        <div class="card">
+          <h2><span class="lamp {l.ok ? (l.statusKode !== 0 && l.status.startsWith('C') ? 'green' : 'grey') : 'red'}"></span>DEFA Power ({l.id})</h2>
+          <p class="muted">{l.ip} · Modbus TCP (enhetsnettet) — lesing kun på forespørsel</p>
+          {#if l.ok}
+            <div class="kpi">
+              <div class="item"><div class="value">{l.status}</div><div class="label">IEC-tilstand (reg 302)</div></div>
+              <div class="item"><div class="value">{l.l1A.toFixed(1)} / {l.l2A.toFixed(1)} / {l.l3A.toFixed(1)}</div><div class="label">strøm L1/L2/L3 (A)</div></div>
+              <div class="item"><div class="value">{l.effektW.toFixed(0)}</div><div class="label">effekt (W)</div></div>
+              <div class="item"><div class="value">{l.maksA.toFixed(0)}</div><div class="label">maks installasjon (A)</div></div>
+            </div>
+          {:else}
+            <p><span class="lamp red"></span>Fikk ikke lest status: {l.error}</p>
+          {/if}
+        </div>
+      {/each}
+      <p><button class="ghost" on:click={loadDefa}>Les DEFA-status på nytt (Modbus)</button> <span class="muted">{defaMsg}</span></p>
+    {:else}
+      <p class="muted">{defaMsg || "DEFA-status: henter …"}</p>
+    {/if}
   {/if}
 
   {#if tab === "okter"}
@@ -230,6 +262,10 @@
         <option value="alle">Alle metoder — Vipps, kort m.m. (kort vises som default, styrt av Nexi)</option>
       </select>
       <p class="muted">Gjelder neste økt som startes. «Kun Vipps» utelukker kunder uten Vipps-app.</p>
+      <h2 style="margin-top:18px">DEFA-ladere (Modbus)</h2>
+      <label>Ladere (SN=IP, kommaseparert — IP-ene er dynamiske til DHCP-reservasjonene er utført)</label>
+      <input bind:value={settingsData.settings.defa_ladere} />
+      <p class="muted">Ved IP-drift: slå opp i FortiGates DHCP-utleieliste og oppdater her.</p>
       <p><button on:click={saveSettings}>Lagre innstillinger</button> <span class="muted">{saveMsg}</span></p>
     </div>
   {/if}

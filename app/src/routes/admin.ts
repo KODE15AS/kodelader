@@ -4,6 +4,7 @@ import { config } from "../config.js";
 import { testKeys } from "../payments.js";
 import { endSession, deviceOnline } from "../sessions.js";
 import { setSwitch, cachedStatus, autonomyScriptStatus, installAutonomyScript } from "../devicehub.js";
+import { defaLadere, lesDefaStatus } from "../defa.js";
 
 export const adminRouter = Router();
 
@@ -72,6 +73,18 @@ adminRouter.post("/api/checks/:id", (req, res) => {
   setCheck(req.params.id, status === "green" ? "green" : "grey", note);
   logEvent("admin", `Sjekkpunkt ${req.params.id} satt til ${status}`);
   res.json({ ok: true });
+});
+
+/** DEFA-laderne: statuslesing over Modbus (enhetsnettet) — KUN på forespørsel
+ *  (knapp/faneåpning i admin), aldri i fast intervall. Én blokklesing per lader. */
+adminRouter.get("/api/defa", async (_req, res) => {
+  res.json(await Promise.all(defaLadere().map(async (l) => {
+    try {
+      return { ...l, ok: true, ...(await lesDefaStatus(l.ip)) };
+    } catch (err) {
+      return { ...l, ok: false, error: (err as Error).message };
+    }
+  })));
 });
 
 /** CSMS-logg (OCPP): hentes fra kodelader-csms på det interne compose-nettet.
