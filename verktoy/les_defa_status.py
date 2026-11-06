@@ -12,9 +12,10 @@ Verdier er big-endian uint32 over to registre.
 import socket
 import struct
 
+# Navnekonvensjon (spesifikasjonen, 06.11.2026): DEFA 1 / DEFA 2
 LADERE = [
-    ("DEFA Power nr. 1 (DEFA-Power-56101410M)", "10.10.0.16"),
-    ("DEFA Power nr. 2 (DEFA-Power-54C00W10M)", "10.10.0.21"),
+    ("DEFA 1 (DEFA-Power-56101410M)", "10.10.0.16"),
+    ("DEFA 2 (DEFA-Power-54C00W10M)", "10.10.0.21"),
 ]
 
 PORT = 502

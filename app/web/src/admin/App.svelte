@@ -175,9 +175,9 @@
     {/each}
 
     {#if defa}
-      {#each defa as l}
+      {#each defa as l, i}
         <div class="card">
-          <h2><span class="lamp {l.ok ? (l.statusKode !== 0 && l.status.startsWith('C') ? 'green' : 'grey') : 'red'}"></span>DEFA Power ({l.id})</h2>
+          <h2><span class="lamp {l.ok ? (l.statusKode !== 0 && l.status.startsWith('C') ? 'green' : 'grey') : 'red'}"></span>DEFA {i + 1} — DEFA-Power-{l.id}</h2>
           <p class="muted">{l.ip} · Modbus TCP (enhetsnettet) — lesing kun på forespørsel</p>
           {#if l.ok}
             <div class="kpi">

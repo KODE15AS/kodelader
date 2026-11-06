@@ -6,18 +6,22 @@ Egenutviklet elbil-ladesystem for KODE15 AS, driftet på selskapets egen server 
 
 ## Lenker
 
-| Hva | URL | Tilgang |
+| Hva | Tilgang | URL |
 |---|---|---|
-| Brukerside (status/økter) | [cadify104raven.tail14de1b.ts.net/kodelader](https://cadify104raven.tail14de1b.ts.net/kodelader) | Offentlig (Tailscale Funnel) |
-| Start lading proto1 — test kr 1 | […/kodelader/start?enhet=proto1&produkt=kr1](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr1) | Offentlig (= QR-koden) |
-| Start lading proto1 — kr 100 | […/kodelader/start?enhet=proto1&produkt=kr100](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr100) | Offentlig (= QR-koden) |
-| Admin (enheter/økter/innstillinger/etablering/CSMS-logg) | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) | Kun tailnettet |
-| OCPP-endepunkt for DEFA-laderne (CSMS) | [lading.kode15.app](https://lading.kode15.app) | Offentlig via web-gateway — 404 med gyldig TLS = friskt (kun `/ocpp/*` rutes, WebSocket + Basic Auth) |
-| Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | [10.10.0.25](http://10.10.0.25) | Kun KODE15-wifi — dynamisk IP, sjekk ruterens klientliste hvis den ikke svarer |
-| Nexi Checkout-portal (API-nøkler, transaksjoner) | [portal.dibspayment.eu](https://portal.dibspayment.eu) | Innlogging |
-| GatewayAPI-dashbord (SMS, URL-hviteliste) | [gatewayapi.com](https://gatewayapi.com) | Innlogging |
+| Brukerside (status/økter) | 🌐 Offentlig (Tailscale Funnel) | [cadify104raven.tail14de1b.ts.net/kodelader](https://cadify104raven.tail14de1b.ts.net/kodelader) |
+| Start lading proto1 — test kr 1 | 🌐 Offentlig (= QR-koden) | […/kodelader/start?enhet=proto1&produkt=kr1](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr1) |
+| Start lading proto1 — kr 100 | 🌐 Offentlig (= QR-koden) | […/kodelader/start?enhet=proto1&produkt=kr100](https://cadify104raven.tail14de1b.ts.net/kodelader/start?enhet=proto1&produkt=kr100) |
+| OCPP-endepunkt for DEFA-laderne (CSMS) | 🌐 Offentlig via web-gateway — 404 med gyldig TLS = friskt (kun `/ocpp/*` rutes, WebSocket + Basic Auth) | [lading.kode15.app](https://lading.kode15.app) |
+| Admin (enheter/økter/innstillinger/etablering/CSMS-logg) | 🔒 Kun tailnettet | [cadify104raven.tail14de1b.ts.net:8097](http://cadify104raven.tail14de1b.ts.net:8097) |
+| Shelly-enhetens webgrensesnitt (innstillinger/Scripts) | 🔒 Kun KODE15-wifi — dynamisk IP, sjekk ruterens klientliste | [10.10.0.25](http://10.10.0.25) |
+| Dette repoet på GitHub | 🌐 Offentlig | [github.com/KODE15AS/kodelader](https://github.com/KODE15AS/kodelader) |
+| Vipps MobilePay-portal (transaksjoner, rapporter, API-nøkler) | 🌐 Innlogging | [portal.vipps.no](https://portal.vipps.no) |
+| Nexi Checkout-portal (reserve-kortkanal) | 🌐 Innlogging | [portal.dibspayment.eu](https://portal.dibspayment.eu) |
+| GatewayAPI-dashbord (SMS, URL-hviteliste) | 🌐 Innlogging | [gatewayapi.com](https://gatewayapi.com) |
 
-QR-kodene (kr 1 og kr 100 for proto1) ligger i [docs/qr/](docs/qr/). Eget domene erstatter Funnel-adressen i fase 3 — da må det nye domenet også hvitelistes hos GatewayAPI før `BASE_URL` byttes.
+🌐 Offentlig — kan nås fra internett. 🔒 Kun internt (tailnett/kontor-wifi).
+
+QR-kodene (kr 1 og kr 100 for proto1) ligger i [docs/qr/](docs/qr/). Eget domene erstatter Funnel-adressen i fase 3 — da må det nye domenet også hvitelistes hos GatewayAPI før `BASE_URL` byttes. Startsiden [kode15.app](https://kode15.app) lenker hit fra DRENGR-menyen.
 
 ## Slik virker det
 

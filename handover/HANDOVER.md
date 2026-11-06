@@ -274,6 +274,16 @@ Deploy på Raven + scriptinstallasjon på ekte Shelly gikk knirkefritt (én knap
   bevisst til all funksjonalitet er på plass og ferdig testet (inkl. kobling mot bilen —
   kan drøye). Begge står som sjekkpunkter i admin og i fase 3-listen, så de glemmes ikke
 
+## DEFA-laderne — navnekonvensjon (06.11.2026)
+
+| Kortnavn | Full identitet | SN (OCPP-brukernavn) | IP (til DHCP-reservasjon er utført) |
+|---|---|---|---|
+| **DEFA 1** | DEFA-Power-56101410M | 56101410M | 10.10.0.16 |
+| **DEFA 2** | DEFA-Power-54C00W10M | 54C00W10M | 10.10.0.21 |
+
+Kortnavnene brukes i admin-UI, verktøy og dokumentasjon; rekkefølgen følger
+`defa_ladere`-innstillingen (DEFA 1 = første oppføring).
+
 ## DEFA Power på wifi — Modbus TCP valgt (29.10.2026)
 
 Laderen DEFA-Power-56101410M står på KODE15-wifi-en (10.10.0.16) og nås
