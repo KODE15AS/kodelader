@@ -3,6 +3,8 @@ name: kodelader
 services:
   app:
     build: ./app
+    # Stabilt navn på drengr-nett: web-gateway ruter kodelader.kode15.app hit
+    container_name: kodelader-app
     restart: unless-stopped
     ports:
       - "8096:8096"   # offentlig (Funnel /kodelader)
@@ -17,6 +19,7 @@ services:
     networks:
       - default
       - enhetsnett
+      - drengr-nett
 
   # CSMS — OCPP 2.0.1-endepunkt for DEFA-laderne. Web-gateway proxyer
   # wss://lading.kode15.app/ocpp/* hit via drengr-nett (kontrakt i
