@@ -38,6 +38,21 @@ registrene skulle ellers blokkert) og mater ingen måledata tilbake.
 Modbus-register-veien er frakoblet i BEGGE retninger; app-nivåets
 lastbalansering virker.
 
+## Identitetsoppklaring (17:58) — og renere sluttbevis
+
+Under kveldens omrigg (én lader ute til Tesla, én koblet vekk) viste det
+seg at boksene var FORVEKSLET: boksen som lader Teslaen er
+**56101410M** («DEFA 1», 10.10.0.16) — verifisert trippelt med SN i
+Setup-appen (Bluetooth), MAC og IP. Den var på wifi hele tiden; jakten
+på 54C00W10M (koblet vekk) var mot feil boks. Nytt wifi-AP
+(«ap650-ute-kode15», TP-Link/Omada på 10.10.0.10, samme SSID KODE15
+2,4+5 GHz) står uansett riktig rigget for uteplassen.
+
+Renere sluttmåling: 56101410M, sterkt wifi, Tesla ladende 6 A —
+registrene serverer fortsatt kun nuller. Konklusjonen står uten
+identitets-forbehold. Lærdom: merk boksene fysisk (SN-lapp) og få
+utført DHCP-reservasjonene (fortigate-ordren) før neste økt.
+
 ## Verifisert underveis (virker)
 
 - Skriving funksjon 16 til 2000/2004/2008/2012, lesing tilbake med
