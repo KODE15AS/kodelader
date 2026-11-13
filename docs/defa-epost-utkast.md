@@ -86,8 +86,9 @@ itself works — registers can be read and written consistently
 Questions: Which firmware version is required for eMS enforcement and
 live measurement/status data over Modbus? Is any additional
 configuration needed beyond enabling Modbus in the app (e.g. in
-modbus-tcp.toml)? Current firmware versions on our units: <fylles inn
-fra appen>.
+modbus-tcp.toml)? The unit we verified this on runs firmware 4.3.3
+(config peripheral version 4.3), Wi-Fi connected with good signal
+(73 %), confirmed charging while all Modbus data registers read 0.
 
 Best regards,
 Jørn Watvedt
