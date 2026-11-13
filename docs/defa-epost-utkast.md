@@ -75,7 +75,13 @@ itself works — registers can be read and written consistently
    charge current (reg 2004) were both 0 — the documentation states the
    fallback default of 0 should prevent charging until overwritten.
 3. The status register (302) and the measurement registers
-   (293/296/299, 305) always read 0, also during active charging.
+   (293/296/299, 305) always read 0, also during active charging —
+   verified with a real EV (Tesla Model 3) charging at 4.3 kW while
+   all registers read 0.
+4. The charging rate of 4.3 kW (~6 A per phase) matches the fallback
+   current configured in the Setup app, suggesting the charger is in
+   "master absent → fallback" mode and never recognizes our register
+   writes as an active eMS master.
 
 Questions: Which firmware version is required for eMS enforcement and
 live measurement/status data over Modbus? Is any additional

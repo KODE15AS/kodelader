@@ -26,6 +26,18 @@ tilbake korrekt — men den er IKKE koblet til ladelogikken:
    overwritten». Laderen gikk likevel RETT på lading. Ladelogikken
    konsulterer aldri Modbus-verdiene.
 
+## Sluttbevis med ekte bil (16:22)
+
+Tesla Model 3 på DEFA 2: lader **4,3 kW** (vist i bilen) mens ALLE
+Modbus-registre leser 0 (status, fasestrøm, effekt) — to minutters
+kontinuerlig overvåking. 4,3 kW ≈ 6 A per fase (400 V trefase) =
+nøyaktig fallback-strømmen satt i appen. Tolkning: laderen står i
+lastbalanseringsmodus «master borte → fallback» og håndhever APPENS
+6 A-verdi, men ser aldri Modbus-skrivingene våre (eMS=0/fallback=0 i
+registrene skulle ellers blokkert) og mater ingen måledata tilbake.
+Modbus-register-veien er frakoblet i BEGGE retninger; app-nivåets
+lastbalansering virker.
+
 ## Verifisert underveis (virker)
 
 - Skriving funksjon 16 til 2000/2004/2008/2012, lesing tilbake med
