@@ -1,0 +1,103 @@
+Modbus TCP/IP Protocol Parameters
+DEFA Power acts as a slave device in the modbus TCP/IP communication. The charging station should be connected
+to the same network as the master device, or a proper routing should be applied to provide communication between
+slave and the master devices in different sub networks. There can be only one active modbus master connection at
+any time.
+
+Configuring the charging station
+  • The modbus service needs to be enabled by changing the config /config/modbus/isEnabled to true. Currently,
+    it is possible to enable it by using DEFA Power Setup app.
+  • The charging stations’ Ip address is possible to read with the DEFA Power app.
+  • The slave address is 255.
+  • The port number is 502.
+  • The slave accepts masters from any IP address.
+NOTE: Both modbus port number and which master IP addresses are allowed, can only be changed by telling DEFA
+to configure the modbus-tcp.toml and rebooting the modbus service or DEFA Power.
+
+Registers
+A register consists of 2 bytes/ 16 bits, but most stored values range over multiple registers. When writing to multiple
+registers, write to all registers at the same time. All read/write values are big-endian. The data type String is
+encoded as printable UTF8 characters. A register with data type String has two printable UTF8 characters. The
+charging station uses the provided max currents, to limit the amount of ampere per phase, not the sum of all phases.
+
+                                      Function code     Type of value
+
+                                      3 (0x3)           Reading read/write values
+                                      4 (0x4)           Reading read values
+                                      16 (0x10)         Writing read/write values
+
+
+Table of Registers
+
+Name                Start       End         Number      R/W        Data       Unit       Default    Description
+                    address     address     of                     Type                  value
+                                            registers
+
+installation max    290         291         2           R          uint32     mA         -          Max current
+current                                                                                             supported by the
+                                                                                                    charging station
+actual current      293         294         2           R          uint32     mA         0          Current
+on L1 phase                                                                                         consumed by EV
+                                                                                                    on phase L1
+actual current      296         297         2           R          uint32     mA         0          Current
+on L2 phase                                                                                         consumed by EV
+                                                                                                    on phase L2
+actual current      299         300         2           R          uint32     mA         0          Current
+on L3 phase                                                                                         consumed by EV
+                                                                                                    on phase L3
+
+
+
+
+                                                            1
+Name               Start     End       Number      R/W     Data     Unit   Default   Description
+                   address   address   of                  Type            value
+                                       registers
+
+charging station   302       303       2           R       uint32   N/A    0         ASCII encoded
+status                                                                               representation of
+                                                                                     charging station
+                                                                                     status. bits 8-15
+                                                                                     contains the
+                                                                                     letter A,B,C,D,E
+                                                                                     or F. bits 0-7
+                                                                                     contain “1” or
+                                                                                     “2” depending on
+                                                                                     pwm duty cycle.
+                                                                                     Example: State
+                                                                                     C2 = 0x4332
+charging station   305       306       2           R       uint32   mW     0         Combined power
+power                                                                                consumed by EV
+eMS max            2000      2001      2           R/W     uint32   mA     0         Max current set
+current                                                                              by modbus
+                                                                                     master
+timeout max        2004      2005      2           R/W     uint32   mA     0         Current set
+charge current                                                                       when modbus
+                                                                                     master has not
+                                                                                     written to alive
+                                                                                     register during
+                                                                                     timeout period.
+                                                                                     The initial value
+                                                                                     is set to 0 to
+                                                                                     ensure safe
+                                                                                     default
+                                                                                     behaviour,
+                                                                                     preventing
+                                                                                     charging until
+                                                                                     the value is
+                                                                                     overwritten
+alive              2008      2009      2           W       uint32   N/A    N/A       Alive bit which
+                                                                                     modbus master
+                                                                                     sets to 1
+alive timeout      2012      2013      2           R/W     uint32   ms     100000    Timeout time
+                                                                                     for when
+                                                                                     charging station
+                                                                                     limits charging
+                                                                                     to timeout max
+                                                                                     charge current
+
+
+
+
+                                                       2
+
