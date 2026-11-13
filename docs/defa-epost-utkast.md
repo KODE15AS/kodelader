@@ -47,3 +47,42 @@ do you configure it on your side?
 Best regards,
 Jørn Watvedt
 Kode15 AS (org.nr. 989 990 330)
+
+---
+
+## Tillegg 13.11.2026 — Modbus-spørsmål til evsupport (egen e-post)
+
+Funn fra testøkt med bilsimulator (se
+`handover/2026-11-13-defa-modbus-testokt.md`). Sendes separat til
+**evsupport.no@defa.com** — ikke bland med CSMS-forespørselen over.
+
+**Subject:** DEFA Power Modbus TCP: eMS registers not enforced, status/measurement registers always 0
+
+Hello,
+
+We are integrating two DEFA Power chargers (DEFA-Power-56101410M,
+DEFA-Power-54C00W10M) via Modbus TCP per your protocol document
+(modbus_documentation.pdf, Dec 2025 revision). The Modbus service
+itself works — registers can be read and written consistently
+(functions 3/4/16, slave 255, port 502). However:
+
+1. The eMS registers are not enforced: with "Load balancing → Modbus"
+   enabled in the DEFA Power Setup app, writing eMS max current = 0 mA
+   (reg 2000) with the alive register (2008) written every 10 s did not
+   affect an active charging session at all.
+2. After a power cycle with a vehicle connected, the charger started
+   charging immediately even though eMS max current and timeout max
+   charge current (reg 2004) were both 0 — the documentation states the
+   fallback default of 0 should prevent charging until overwritten.
+3. The status register (302) and the measurement registers
+   (293/296/299, 305) always read 0, also during active charging.
+
+Questions: Which firmware version is required for eMS enforcement and
+live measurement/status data over Modbus? Is any additional
+configuration needed beyond enabling Modbus in the app (e.g. in
+modbus-tcp.toml)? Current firmware versions on our units: <fylles inn
+fra appen>.
+
+Best regards,
+Jørn Watvedt
+Kode15 AS (org.nr. 989 990 330)
